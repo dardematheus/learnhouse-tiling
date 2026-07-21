@@ -4,6 +4,7 @@ import ToolTip from '@components/Objects/StyledElements/Tooltip/Tooltip'
 import EditVideoActivityModal from '@components/Objects/Modals/Activities/Edit/EditVideoActivityModal'
 import EditDocumentActivityModal from '@components/Objects/Modals/Activities/Edit/EditDocumentActivityModal'
 import EditScormActivityModal from '@components/Objects/Modals/Activities/Edit/EditScormActivityModal'
+import EditTilingActivityModal from '@components/Objects/Modals/Activities/Edit/EditTilingActivityModal'
 import { getUriWithOrg } from '@services/config/config'
 import {
   addUserGroupToActivity,
@@ -17,6 +18,7 @@ import LockPopover, { LockType } from './LockPopover'
 import {
   Backpack,
   Check,
+  Columns2,
   Eye,
   EyeOff,
   File,
@@ -86,6 +88,7 @@ function ActivityElement(props: ActivitiyElementProps) {
   const [editVideoModalOpen, setEditVideoModalOpen] = React.useState(false)
   const [editDocumentModalOpen, setEditDocumentModalOpen] = React.useState(false)
   const [editScormModalOpen, setEditScormModalOpen] = React.useState(false)
+  const [editTilingModalOpen, setEditTilingModalOpen] = React.useState(false)
   const activityUUID = props.activity.activity_uuid
   const isMobile = useMediaQuery('(max-width: 767px)')
   const org = useOrg() as any;
@@ -425,6 +428,31 @@ function ActivityElement(props: ActivitiyElementProps) {
                     </button>
                   }
                 />
+              ) : props.activity.activity_type === 'TYPE_TILING' ? (
+                <Modal
+                  isDialogOpen={editTilingModalOpen}
+                  onOpenChange={() => setEditTilingModalOpen(!editTilingModalOpen)}
+                  minHeight="no-min"
+                  minWidth="md"
+                  dialogTitle="Edit Tiling Activity"
+                  dialogDescription="Update the name, or replace the video and/or PDF file."
+                  dialogContent={
+                    <EditTilingActivityModal
+                      activity={props.activity}
+                      courseUuid={props.course_uuid}
+                      orgSlug={props.orgslug}
+                      onClose={() => setEditTilingModalOpen(false)}
+                    />
+                  }
+                  dialogTrigger={
+                    <button
+                      className="h-7 w-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                      title="Edit tiling activity"
+                    >
+                      <FilePenLine size={15} />
+                    </button>
+                  }
+                />
               ) : editHref ? (
                 <ToolTip
                   content={props.activity.activity_type === 'TYPE_ASSIGNMENT'
@@ -531,6 +559,10 @@ const ACTIVITIES = {
   'TYPE_SCORM': {
     displayNameKey: 'scorm',
     Icon: Package
+  },
+  'TYPE_TILING': {
+    displayNameKey: 'tiling',
+    Icon: Columns2
   }
 }
 

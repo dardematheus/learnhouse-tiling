@@ -1221,7 +1221,8 @@
     "copy_link": "Копіювати посилання",
     "link_copied": "Посилання скопійовано!",
     "embed": "Вставити",
-    "embed_code_copied": "Код вставки скопійовано!"
+    "embed_code_copied": "Код вставки скопійовано!",
+    "tiling": "Tiling"
   },
   "embed": {
     "not_supported_title": "Ця активність не підтримується",
@@ -2413,7 +2414,8 @@
             "dynamic_page": "Динамічна сторінка",
             "scorm": "Скорм",
             "markdown": "Уцінка",
-            "embed": "Вставити"
+            "embed": "Вставити",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Видалення активності...",

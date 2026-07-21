@@ -12,6 +12,7 @@ class ActivityTypeEnum(str, Enum):
     TYPE_ASSIGNMENT = "TYPE_ASSIGNMENT"
     TYPE_CUSTOM = "TYPE_CUSTOM"
     TYPE_SCORM = "TYPE_SCORM"
+    TYPE_TILING = "TYPE_TILING"
 
 
 class ActivitySubTypeEnum(str, Enum):
@@ -33,6 +34,8 @@ class ActivitySubTypeEnum(str, Enum):
     # SCORM
     SUBTYPE_SCORM_12 = "SUBTYPE_SCORM_12"
     SUBTYPE_SCORM_2004 = "SUBTYPE_SCORM_2004"
+    # Tiling (side-by-side hosted video + PDF document)
+    SUBTYPE_TILING_VIDEO_PDF = "SUBTYPE_TILING_VIDEO_PDF"
 
 
 class ActivityLockType(str, Enum):

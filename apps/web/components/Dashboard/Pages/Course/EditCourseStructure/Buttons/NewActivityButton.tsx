@@ -6,6 +6,7 @@ import {
   createActivity,
   createExternalVideoActivity,
   createFileActivity,
+  createTilingActivity,
   createVideoActivityWithProgress,
   updateVideoCaptions,
 } from '@services/courses/activities'
@@ -142,6 +143,43 @@ function NewActivityButton(props: NewActivityButtonProps) {
     await refreshStructure()
   }
 
+  // Submit Tiling activity (side-by-side video + PDF): uploads both files in
+  // one multipart request. Kept inline (like documentpdf) rather than run in
+  // the background, since there's no per-file progress UI for two files yet.
+  const submitTilingActivity = async ({
+    video,
+    pdf,
+    name,
+    chapterId,
+  }: {
+    video: File
+    pdf: File
+    name: string
+    chapterId: string
+  }) => {
+    const toast_loading = toast.loading(t('dashboard.courses.structure.activity.toasts.uploading'))
+    try {
+      await createTilingActivity(
+        video,
+        pdf,
+        { name },
+        chapterId,
+        access_token
+      )
+    } catch (error: any) {
+      track(AnalyticsEvent.ActivityFileUploaded, { file_type: 'tiling', upload_succeeded: false })
+      toast.dismiss(toast_loading)
+      toast.error(error?.message || t('dashboard.courses.structure.activity.toasts.upload_error'))
+      return
+    }
+    track(AnalyticsEvent.ActivityFileUploaded, { file_type: 'tiling', upload_succeeded: true })
+    setNewActivityModal(false)
+    toast.dismiss(toast_loading)
+    toast.success(t('dashboard.courses.structure.activity.toasts.upload_success'))
+    toast.success(t('dashboard.courses.structure.activity.toasts.create_success'))
+    await refreshStructure()
+  }
+
   // Submit YouTube Video Upload
   const submitExternalVideo = async (
     external_video_data: any,
@@ -206,6 +244,7 @@ function NewActivityButton(props: NewActivityButtonProps) {
             submitFileActivity={submitFileActivity}
             submitExternalVideo={submitExternalVideo}
             submitActivity={submitActivity}
+            submitTilingActivity={submitTilingActivity}
             chapterId={props.chapterId}
             course={course}
             orgslug={props.orgslug}

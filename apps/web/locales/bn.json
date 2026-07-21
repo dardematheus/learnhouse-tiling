@@ -987,7 +987,8 @@
     "embed": "এম্বেড",
     "embed_code_copied": "এমবেড কোড কপি হয়েছে!",
     "link_copied": "লিঙ্ক কপি হয়েছে!",
-    "share": "শেয়ার"
+    "share": "শেয়ার",
+    "tiling": "Tiling"
   },
   "assignments": {
     "submit_assignment": "অ্যাসাইনমেন্ট জমা দিন",
@@ -2104,7 +2105,8 @@
             "dynamic_page": "ডায়নামিক পেজ",
             "scorm": "SCORM",
             "markdown": "Markdown",
-            "embed": "এমবেড"
+            "embed": "এমবেড",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "কার্যক্রম মোছা হচ্ছে...",

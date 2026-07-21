@@ -987,7 +987,8 @@
     "embed": "Sematkan",
     "embed_code_copied": "Kode embed tersalin!",
     "link_copied": "Tautan tersalin!",
-    "share": "Bagikan"
+    "share": "Bagikan",
+    "tiling": "Tiling"
   },
   "assignments": {
     "submit_assignment": "Kirim Tugas",
@@ -2104,7 +2105,8 @@
             "dynamic_page": "Halaman Dinamis",
             "scorm": "SCORM",
             "markdown": "Markdown",
-            "embed": "Embed"
+            "embed": "Embed",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Menghapus aktivitas...",

@@ -987,7 +987,8 @@
     "embed": "Встроить",
     "embed_code_copied": "Код встраивания скопирован!",
     "link_copied": "Ссылка скопирована!",
-    "share": "Поделиться"
+    "share": "Поделиться",
+    "tiling": "Tiling"
   },
   "assignments": {
     "submit_assignment": "Сдать задание",
@@ -2104,7 +2105,8 @@
             "dynamic_page": "Динамическая страница",
             "scorm": "Scorm",
             "markdown": "Markdown",
-            "embed": "Embed"
+            "embed": "Embed",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Удаление занятия...",

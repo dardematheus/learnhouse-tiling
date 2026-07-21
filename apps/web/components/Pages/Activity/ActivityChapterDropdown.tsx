@@ -1,6 +1,6 @@
 'use client'
 import { useMediaQuery } from 'usehooks-ts'
-import { Check, FileText, ListTree, Video, X, StickyNote, Backpack, ArrowRight } from 'lucide-react'
+import { Check, FileText, ListTree, Video, X, StickyNote, Backpack, ArrowRight, Columns2 } from 'lucide-react'
 import { getUriWithOrg } from '@services/config/config'
 import Link from 'next/link'
 import React from 'react'
@@ -65,6 +65,8 @@ export default function ActivityChapterDropdown(props: ActivityChapterDropdownPr
         return <StickyNote size={10} />;
       case 'TYPE_ASSIGNMENT':
         return <Backpack size={10} />;
+      case 'TYPE_TILING':
+        return <Columns2 size={10} />;
       default:
         return <FileText size={10} />;
     }
@@ -80,6 +82,8 @@ export default function ActivityChapterDropdown(props: ActivityChapterDropdownPr
         return t('activities.page');
       case 'TYPE_ASSIGNMENT':
         return t('activities.assignment');
+      case 'TYPE_TILING':
+        return t('activities.tiling');
       default:
         return t('activities.learning_material');
     }

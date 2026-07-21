@@ -1,5 +1,5 @@
 import React from 'react'
-import { Browsers, PlayCircle, FileText, Backpack, MarkdownLogo, Globe, Package, Cube } from '@phosphor-icons/react'
+import { Browsers, PlayCircle, FileText, Backpack, MarkdownLogo, Globe, Package, Cube, Columns } from '@phosphor-icons/react'
 import { SiGoogledocs, SiGooglesheets, SiGoogleslides, SiGoogleforms, SiFigma, SiNotion, SiCanvas, SiLoom, SiMiro, SiYoutube, SiSpotify, SiAirtable, SiTypeform, SiDropbox, SiTrello } from '@icons-pack/react-simple-icons'
 import dynamic from 'next/dynamic'
 import DynamicCanvaModal from './NewActivityModal/DynamicActivityModal'
@@ -7,6 +7,7 @@ import MarkdownModal from './NewActivityModal/MarkdownActivityModal'
 import EmbedModal from './NewActivityModal/EmbedActivityModal'
 import VideoModal from './NewActivityModal/VideoActivityModal'
 import DocumentPdfModal from './NewActivityModal/DocumentActivityModal'
+import TilingModal from './NewActivityModal/TilingActivityModal'
 import Assignment from './NewActivityModal/AssignmentActivityModal'
 import ResourceModal from './NewActivityModal/ResourceActivityModal'
 import { useOrg } from '@components/Contexts/OrgContext'
@@ -101,6 +102,15 @@ export const activityTypes: ActivityTypeCard[] = [
     pattern: `repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(167,243,208,0.25) 8px, rgba(167,243,208,0.25) 9px), repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(167,243,208,0.25) 8px, rgba(167,243,208,0.25) 9px)`,
   },
   {
+    key: 'tiling',
+    icon: Columns,
+    labelKey: 'dashboard.courses.structure.activity.types.tiling',
+    color: {
+      icon: 'text-fuchsia-400',
+    },
+    pattern: `repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(240,171,252,0.25) 6px, rgba(240,171,252,0.25) 7px)`,
+  },
+  {
     key: 'assignments',
     icon: Backpack,
     labelKey: 'dashboard.courses.structure.activity.types.assignments',
@@ -157,6 +167,7 @@ function NewActivityModal({
   submitActivity,
   submitFileActivity,
   submitExternalVideo,
+  submitTilingActivity,
   chapterId,
   course,
   orgslug,
@@ -233,6 +244,14 @@ function NewActivityModal({
           {selectedView === 'documentpdf' && (
             <DocumentPdfModal
               submitFileActivity={submitFileActivity}
+              chapterId={chapterId}
+              course={course}
+            />
+          )}
+
+          {selectedView === 'tiling' && (
+            <TilingModal
+              submitTilingActivity={submitTilingActivity}
               chapterId={chapterId}
               course={course}
             />

@@ -135,6 +135,38 @@ export async function createFileActivity(
   return res
 }
 
+/**
+ * Create a tiling activity (side-by-side video + PDF) by uploading both files
+ * in a single multipart request. Mirrors createFileActivity's error handling.
+ */
+export async function createTilingActivity(
+  videoFile: File,
+  pdfFile: File,
+  data: any,
+  chapter_id: any,
+  access_token: string
+) {
+  const formData = new FormData()
+  formData.append('chapter_id', chapter_id)
+  formData.append('name', data.name)
+  formData.append('video_file', videoFile)
+  formData.append('pdf_file', pdfFile)
+
+  const result: any = await fetch(
+    `${getAPIUrl()}activities/tiling`,
+    RequestBodyFormWithAuthHeader('POST', formData, null, access_token)
+  )
+  if (!result.ok) {
+    if (result.status === 413) {
+      throw new Error('The file is too large to upload.')
+    }
+    const detail = await result.json().catch(() => null)
+    throw new Error(detail?.detail || `Upload failed (HTTP ${result.status})`)
+  }
+  const res = await result.json()
+  return res
+}
+
 export async function createExternalVideoActivity(
   data: any,
   activity: any,
@@ -406,6 +438,28 @@ export async function updateDocumentActivity(
   if (pdfFile) formData.append('pdf_file', pdfFile)
   const result = await fetch(
     `${getAPIUrl()}activities/documentpdf/${activityUuid}`,
+    RequestBodyFormWithAuthHeader('PUT', formData, null, access_token)
+  )
+  return getResponseMetadata(result)
+}
+
+/**
+ * Update a tiling activity: optionally rename, and/or replace the video and/or
+ * the PDF. Only the supplied fields are sent.
+ */
+export async function updateTilingActivity(
+  activityUuid: string,
+  access_token: string,
+  name?: string,
+  videoFile?: File | null,
+  pdfFile?: File | null,
+) {
+  const formData = new FormData()
+  if (name) formData.append('name', name)
+  if (videoFile) formData.append('video_file', videoFile)
+  if (pdfFile) formData.append('pdf_file', pdfFile)
+  const result = await fetch(
+    `${getAPIUrl()}activities/tiling/${activityUuid}`,
     RequestBodyFormWithAuthHeader('PUT', formData, null, access_token)
   )
   return getResponseMetadata(result)

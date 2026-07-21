@@ -1399,7 +1399,8 @@
     "copy_link": "Copy Link",
     "link_copied": "Link copied!",
     "embed": "Embed",
-    "embed_code_copied": "Embed code copied!"
+    "embed_code_copied": "Embed code copied!",
+    "tiling": "Tiling"
   },
   "embed": {
     "not_supported_title": "This activity is not supported",
@@ -2600,7 +2601,8 @@
             "scorm": "Scorm",
             "markdown": "Markdown",
             "embed": "Embed",
-            "resource": "Resource"
+            "resource": "Resource",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Deleting activity...",

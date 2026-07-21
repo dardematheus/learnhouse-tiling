@@ -1221,7 +1221,8 @@
     "copy_link": "Kopírovať odkaz",
     "link_copied": "Odkaz skopírovaný!",
     "embed": "Vložiť",
-    "embed_code_copied": "Kód na vloženie skopírovaný!"
+    "embed_code_copied": "Kód na vloženie skopírovaný!",
+    "tiling": "Tiling"
   },
   "embed": {
     "not_supported_title": "Táto aktivita nie je podporovaná",
@@ -2413,7 +2414,8 @@
             "dynamic_page": "Dynamická stránka",
             "scorm": "Scorm",
             "markdown": "Markdown",
-            "embed": "Vložený obsah"
+            "embed": "Vložený obsah",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Odstraňuje sa aktivita...",

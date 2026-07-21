@@ -36,6 +36,10 @@ from src.services.courses.activities.video import (
     update_video_activity,
     update_external_video_activity,
 )
+from src.services.courses.activities.tiling import (
+    create_tiling_activity,
+    update_tiling_activity,
+)
 from src.services.courses.lock_usergroups import (
     add_usergroup_to_activity,
     get_activity_usergroups,
@@ -600,6 +604,73 @@ async def api_update_documentpdf_activity(
 ) -> ActivityRead:
     return await update_documentpdf_activity(
         request, activity_uuid, current_user, db_session, name, pdf_file
+    )
+
+
+@router.post(
+    "/tiling",
+    response_model=ActivityRead,
+    summary="Create tiling activity",
+    description="Create a new tiling activity by uploading both a video file and a PDF document. The two are displayed side by side (video on the left, PDF on the right).",
+    responses={
+        200: {
+            "description": "Tiling activity created and returned.",
+            "model": ActivityRead,
+        },
+        401: {"description": "Authentication required"},
+        403: {
+            "description": "User lacks permission to create activities in this chapter"
+        },
+        404: {"description": "Chapter not found"},
+    },
+)
+async def api_create_tiling_activity(
+    request: Request,
+    name: str = Form(),
+    chapter_id: int = Form(),
+    extra_metadata: Optional[str] = Form(default=None),
+    current_user: PublicUser = Depends(get_current_user),
+    video_file: UploadFile | None = None,
+    pdf_file: UploadFile | None = None,
+    db_session=Depends(get_db_session),
+) -> ActivityRead:
+    """
+    Create new tiling activity (side-by-side video + PDF)
+    """
+    return await create_tiling_activity(
+        request,
+        name,
+        chapter_id,
+        current_user,
+        db_session,
+        video_file,
+        pdf_file,
+        extra_metadata=_parse_extra_metadata(extra_metadata),
+    )
+
+
+@router.put(
+    "/tiling/{activity_uuid}",
+    response_model=ActivityRead,
+    summary="Update tiling activity",
+)
+async def api_update_tiling_activity(
+    request: Request,
+    activity_uuid: str,
+    name: Optional[str] = Form(default=None),
+    current_user: PublicUser = Depends(get_current_user),
+    video_file: UploadFile | None = None,
+    pdf_file: UploadFile | None = None,
+    db_session=Depends(get_db_session),
+) -> ActivityRead:
+    return await update_tiling_activity(
+        request,
+        activity_uuid,
+        current_user,
+        db_session,
+        name,
+        video_file,
+        pdf_file,
     )
 
 

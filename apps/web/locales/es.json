@@ -965,7 +965,8 @@
     "embed": "Incrustar",
     "embed_code_copied": "¡Código de incrustación copiado!",
     "link_copied": "¡Enlace copiado!",
-    "share": "Compartir"
+    "share": "Compartir",
+    "tiling": "Tiling"
   },
   "assignments": {
     "submit_assignment": "Enviar tarea",
@@ -2082,7 +2083,8 @@
             "dynamic_page": "Página dinámica",
             "scorm": "Scorm",
             "markdown": "Markdown",
-            "embed": "Embed"
+            "embed": "Embed",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Eliminando actividad...",

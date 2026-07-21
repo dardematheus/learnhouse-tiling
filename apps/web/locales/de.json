@@ -965,7 +965,8 @@
     "embed": "Einbetten",
     "embed_code_copied": "Einbettungscode kopiert!",
     "link_copied": "Link kopiert!",
-    "share": "Teilen"
+    "share": "Teilen",
+    "tiling": "Tiling"
   },
   "assignments": {
     "submit_assignment": "Aufgabe einreichen",
@@ -2082,7 +2083,8 @@
             "dynamic_page": "Dynamische Seite",
             "scorm": "SCORM",
             "markdown": "Markdown",
-            "embed": "Einbettung"
+            "embed": "Einbettung",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Aktivität wird gelöscht...",

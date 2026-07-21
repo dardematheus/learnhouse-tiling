@@ -978,7 +978,8 @@
     "share": "مشاركة",
     "markdown": "ماركداون",
     "custom": "مخصص",
-    "scorm": "سكورم"
+    "scorm": "سكورم",
+    "tiling": "Tiling"
   },
   "assignments": {
     "submit_assignment": "تسليم الواجب",
@@ -2096,7 +2097,8 @@
             "scorm": "Scorm",
             "markdown": "Markdown",
             "embed": "Embed",
-            "custom": "مخصص"
+            "custom": "مخصص",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "جاري حذف النشاط...",

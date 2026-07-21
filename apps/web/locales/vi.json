@@ -987,7 +987,8 @@
     "embed": "Nhúng",
     "embed_code_copied": "Đã sao chép mã nhúng!",
     "link_copied": "Đã sao chép liên kết!",
-    "share": "Chia sẻ"
+    "share": "Chia sẻ",
+    "tiling": "Tiling"
   },
   "assignments": {
     "submit_assignment": "Nộp bài tập",
@@ -2104,7 +2105,8 @@
             "dynamic_page": "Trang động",
             "scorm": "Scorm",
             "markdown": "Markdown",
-            "embed": "Nhúng"
+            "embed": "Nhúng",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Đang xóa hoạt động...",

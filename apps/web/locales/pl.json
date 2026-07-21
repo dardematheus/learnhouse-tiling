@@ -987,7 +987,8 @@
     "embed": "Osadź",
     "embed_code_copied": "Kod osadzania skopiowany!",
     "link_copied": "Link skopiowany!",
-    "share": "Udostępnij"
+    "share": "Udostępnij",
+    "tiling": "Tiling"
   },
   "assignments": {
     "submit_assignment": "Wyślij zadanie",
@@ -2104,7 +2105,8 @@
             "dynamic_page": "Strona dynamiczna",
             "scorm": "SCORM",
             "markdown": "Markdown",
-            "embed": "Osadzenie"
+            "embed": "Osadzenie",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "Usuwanie aktywności...",

@@ -47,6 +47,7 @@ const ReactConfetti = dynamic(() => import('react-confetti'), { ssr: false })
 const Canva = lazy(() => import('@components/Objects/Activities/DynamicCanva/DynamicCanva'))
 const VideoActivity = lazy(() => import('@components/Objects/Activities/Video/Video'))
 const DocumentPdfActivity = lazy(() => import('@components/Objects/Activities/DocumentPdf/DocumentPdf'))
+const TilingActivity = lazy(() => import('@components/Objects/Activities/Tiling/TilingActivity'))
 const AssignmentStudentActivity = lazy(() => import('@components/Objects/Activities/Assignment/AssignmentStudentActivity'))
 const AIActivityAsk = lazy(() => import('@components/Objects/Activities/AI/AIActivityAsk'))
 const AISidePanelContentWrapper = lazy(() => import('@components/Objects/Activities/AI/AIActivityAsk').then(mod => ({ default: mod.AISidePanelContentWrapper })))
@@ -333,6 +334,12 @@ function ActivityClient(props: ActivityClientProps) {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <DocumentPdfActivity course={course} activity={activity} />
+          </Suspense>
+        );
+      case 'TYPE_TILING':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <TilingActivity course={course} activity={activity} />
           </Suspense>
         );
       case 'TYPE_ASSIGNMENT':

@@ -1251,7 +1251,8 @@
     "copy_link": "کپی لینک",
     "link_copied": "لینک کپی شد!",
     "embed": "جاسازی",
-    "embed_code_copied": "کد جاسازی کپی شد!"
+    "embed_code_copied": "کد جاسازی کپی شد!",
+    "tiling": "Tiling"
   },
   "embed": {
     "not_supported_title": "این فعالیت پشتیبانی نمی‌شود",
@@ -2444,7 +2445,8 @@
             "dynamic_page": "صفحه پویا",
             "scorm": "Scorm",
             "markdown": "مارک‌داون",
-            "embed": "جاسازی"
+            "embed": "جاسازی",
+            "tiling": "Tiling"
           },
           "toasts": {
             "deleting": "در حال حذف فعالیت...",

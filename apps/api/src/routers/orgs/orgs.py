@@ -1,5 +1,6 @@
 from typing import List, Literal, Optional, Union
 from fastapi import APIRouter, Depends, Request, UploadFile, Query, Path, HTTPException
+from pydantic import BaseModel, EmailStr
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.services.orgs.invites import (
     create_invite_code,
@@ -9,6 +10,7 @@ from src.services.orgs.invites import (
 )
 from src.services.orgs.join import JoinOrg, join_org
 from src.services.orgs.users import (
+    admin_create_user,
     export_organization_users_csv,
     get_list_of_invited_users,
     get_organization_users,
@@ -233,6 +235,52 @@ async def api_get_org_users(
     return await get_organization_users(
         request, org_id, db_session, current_user, page, limit, search,
         usergroup_id, usergroup_filter, sort_order or "desc", role_id, status,
+    )
+
+
+class AdminUserCreate(BaseModel):
+    """Admin-supplied payload for creating a user with an emailed credential."""
+
+    name: str
+    email: EmailStr
+
+
+@router.post(
+    "/{org_id}/users",
+    summary="Create a user (admin only)",
+    description=(
+        "Create a new user in the organization with a system-generated password "
+        "and email them their credentials. Self sign-up is disabled — only an "
+        "org admin may create accounts. The plaintext password is returned once "
+        "(for the admin) and emailed to the user. Returns 200 (the frontend "
+        "getResponseMetadata helper treats only 200 as success)."
+    ),
+    responses={
+        200: {"description": "User created. Response includes the one-time password."},
+        401: {"description": "Not authenticated"},
+        403: {"description": "Caller is not an org admin"},
+        404: {"description": "Organization not found"},
+        400: {"description": "Email or username already in use"},
+    },
+    dependencies=[Depends(require_org_admin)],
+)
+async def api_create_org_user(
+    request: Request,
+    org_id: int,
+    args: AdminUserCreate,
+    current_user: PublicUser = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db_session),
+):
+    """
+    Admin-only user creation.
+
+    SECURITY:
+    - Gated by ``require_org_admin`` (strict org admin, role_id == 1; superadmin
+      bypass). Anonymous callers are rejected (401), non-admins (403).
+    - The password is generated server-side and never chosen by the caller.
+    """
+    return await admin_create_user(
+        request, db_session, current_user, org_id, args.name, args.email
     )
 
 

@@ -64,6 +64,16 @@ EMAIL_TRANSLATIONS: dict[str, dict[str, str]] = {
         "invitation.cta": "Join {org_name}",
         "invitation.footer": "This invitation was sent by @{inviter}. If you weren't expecting this, you can safely ignore it.",
 
+        "account_created_by_admin.subject": "Your account on {org_name}",
+        "account_created_by_admin.heading": "Your account is ready",
+        "account_created_by_admin.intro": "<strong>@{admin}</strong> created an account for you on <strong>{org_name}</strong>. Use the credentials below to sign in.",
+        "account_created_by_admin.email_label": "Email",
+        "account_created_by_admin.username_label": "Username",
+        "account_created_by_admin.password_label": "Temporary password",
+        "account_created_by_admin.change_password_hint": "For your security, please change this password after signing in.",
+        "account_created_by_admin.cta": "Sign in",
+        "account_created_by_admin.footer": "If you weren't expecting this account, please contact your organization administrator.",
+
         "role_changed.subject": "Your role in {org_name} has been updated",
         "role_changed.heading": "Your role has been updated",
         "role_changed.body_1": "Hi {username}, your role in <strong>{org_name}</strong> has been changed to <strong>{role}</strong>.",

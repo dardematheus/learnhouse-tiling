@@ -3373,6 +3373,7 @@
           "roles": "Roles",
           "signups": "Signups & Invite Codes",
           "add": "Invite Members",
+          "create_user": "Create user",
           "audit_logs": "Audit Logs"
         },
         "pages": {
@@ -3387,6 +3388,10 @@
           "add": {
             "title": "Invite Members",
             "subtitle": "Invite members to join your organization"
+          },
+          "create_user": {
+            "title": "Create user",
+            "subtitle": "Create an account and email the user their credentials"
           },
           "usergroups": {
             "title": "UserGroups",
@@ -3405,6 +3410,36 @@
           "title": "Desktop Only",
           "message1": "This page is only accessible from a desktop device.",
           "message2": "Please switch to a desktop to view and manage user settings."
+        }
+      },
+      "create_user": {
+        "title": "Create user",
+        "subtitle": "Create an account and email the user their credentials",
+        "name_label": "Full name",
+        "name_placeholder": "Jane Doe",
+        "email_label": "Email",
+        "email_placeholder": "jane@example.com",
+        "submit": "Create user",
+        "submitting": "Creating…",
+        "toasts": {
+          "creating": "Creating user…",
+          "success": "User created",
+          "email_not_sent": "User created, but the credentials email could not be sent. Copy the password below and share it securely."
+        },
+        "result": {
+          "title": "User created",
+          "intro": "Share these credentials with {{email}}. They were also emailed when email delivery is configured.",
+          "email_label": "Email",
+          "username_label": "Username",
+          "password_label": "Temporary password",
+          "copy": "Copy",
+          "copied": "Copied",
+          "create_another": "Create another user"
+        },
+        "errors": {
+          "missing_fields": "Name and email are required.",
+          "invalid_email": "Please enter a valid email address.",
+          "create_failed": "Failed to create user"
         }
       },
       "active_users": {

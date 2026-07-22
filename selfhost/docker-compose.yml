@@ -1,0 +1,100 @@
+# =============================================================================
+# LearnHouse — produção via imagem pré-compilada (sem npm/npx/bun).
+#
+# Cenário deste arquivo: o servidor só tem Docker. O TLS/HTTPS é terminado na
+# BORDA por um proxy reverso Caddy já existente na infraestrutura; as requisições
+# chegam aqui como HTTP puro. Por isso o contêiner `learnhouse-app` apenas expõe
+# o nginx interno dele (porta 80) — que já roteia web / api / collab / content.
+#
+# Derivado de apps/cli/src/templates/docker-compose.ts (o que `npx learnhouse
+# setup` gera), simplificado para o modo "atrás do meu próprio proxy".
+#
+# Uso:
+#   ./setup.sh            # gera .env com segredos (substitui `npx learnhouse setup`)
+#   docker compose up -d  # sobe (= `npx learnhouse start`)
+# =============================================================================
+
+name: learnhouse
+
+services:
+  learnhouse-app:
+    # Imagem pública e pré-compilada (verificada: ghcr.io/learnhouse/app:latest é pullable).
+    # Para fixar versão, defina APP_IMAGE no .env (ex: ghcr.io/learnhouse/app:1.0.1).
+    image: ${APP_IMAGE:-ghcr.io/learnhouse/app:latest}
+    container_name: learnhouse-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Precisa ser 0.0.0.0 para os serviços ouvirem dentro do contêiner.
+      - HOSTNAME=0.0.0.0
+      # SSR do Next.js chama o backend DIRETO pela FastAPI (bypass do nginx interno).
+      - LEARNHOUSE_API_URL=http://localhost:9000
+    ports:
+      # nginx interno do app (roteia /, /api/v1, /collab, /content, /api/auth).
+      # Aponte o Caddy da borda para http://<ip-desta-vm>:${HTTP_PORT}.
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      # Conteúdo enviado (filesystem). Se usar S3, remova este volume (ver README).
+      - learnhouse_content:/app/api/content
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - learnhouse
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # Primeiro boot: criar schema + semear admin podem demorar um pouco.
+      start_period: 90s
+
+  db:
+    # pgvector é exigido pelo LearnHouse (vetores p/ IA/busca).
+    image: pgvector/pgvector:pg16
+    container_name: learnhouse-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-learnhouse}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-learnhouse}
+      - POSTGRES_DB=${POSTGRES_DB:-learnhouse}
+    volumes:
+      - learnhouse_db_data:/var/lib/postgresql/data
+    networks:
+      - learnhouse
+    # Sem `ports:` — acessível só dentro da rede do compose (mais seguro).
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-learnhouse}"]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+
+  redis:
+    image: redis:7.2.3-alpine
+    container_name: learnhouse-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - learnhouse_redis_data:/data
+    networks:
+      - learnhouse
+    # Sem `ports:` — acessível só dentro da rede do compose.
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+
+networks:
+  learnhouse:
+    driver: bridge
+
+volumes:
+  learnhouse_db_data:
+  learnhouse_redis_data:
+  learnhouse_content:

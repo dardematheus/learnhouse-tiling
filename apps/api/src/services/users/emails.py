@@ -317,6 +317,66 @@ def send_invitation_email(
     )
 
 
+def send_account_credentials_email(
+    email: EmailStr,
+    org_name: str,
+    admin_name: str,
+    username: str,
+    login_url: str,
+    password: str,
+    lang: str = "en",
+):
+    """Credentials "ticket" for an admin-created account.
+
+    Mirrors ``send_invitation_email``: a heading + intro, labeled rows for the
+    email and username, the temporary password in the code box, a reminder to
+    change it, and a sign-in CTA. The password is only ever sent in this email
+    and returned once to the admin — it is never stored in plaintext.
+    """
+    safe_org_name = html.escape(org_name)
+    safe_admin = html.escape(admin_name)
+    safe_username = html.escape(username)
+    safe_password = html.escape(password)
+    safe_email = html.escape(str(email))
+
+    def _field(label: str, value: str) -> str:
+        return f"""
+        <p style="margin:0 0 2px 0; font-size:11px; color:rgba(0,0,0,0.4); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; text-align:left;">{label}</p>
+        <p style="margin:0 0 16px 0; font-size:14px; color:#000000; font-weight:600; text-align:left;">{value}</p>"""
+
+    heading = t(lang, "account_created_by_admin.heading")
+    intro = t(lang, "account_created_by_admin.intro", admin=safe_admin, org_name=safe_org_name)
+
+    body_content = f"""
+        <h1 style="{STYLES['h1']}">{heading}</h1>
+        <p style="{STYLES['p']}">
+            {intro}
+        </p>
+        {_field(t(lang, "account_created_by_admin.email_label"), safe_email)}
+        {_field(t(lang, "account_created_by_admin.username_label"), safe_username)}
+        <p style="margin:0 0 2px 0; font-size:11px; color:rgba(0,0,0,0.4); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; text-align:left;">{t(lang, "account_created_by_admin.password_label")}</p>
+        <div style="margin: 0 0 20px 0;">
+            <span style="{STYLES['code']}">{safe_password}</span>
+        </div>
+        <p style="{STYLES['p']}">
+            {t(lang, "account_created_by_admin.change_password_hint")}
+        </p>
+        <a href="{login_url}" style="{STYLES['button']}">
+            {t(lang, "account_created_by_admin.cta")}
+        </a>
+    """
+
+    return send_email(
+        to=email,
+        subject=t(lang, "account_created_by_admin.subject", org_name=safe_org_name),
+        body=_email_layout(
+            title=heading,
+            body_content=body_content,
+            footer_note=t(lang, "account_created_by_admin.footer"),
+        ),
+    )
+
+
 def send_role_changed_email(
     email: EmailStr,
     username: str,

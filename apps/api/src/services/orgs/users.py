@@ -2,12 +2,14 @@ import csv
 import io
 import json
 import logging
+import re
 from datetime import datetime, timedelta
 from typing import Optional
 
 import redis
 from fastapi import HTTPException, Request
 from fastapi.responses import StreamingResponse
+from pydantic import EmailStr
 from sqlalchemy.orm import aliased
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -19,7 +21,7 @@ from src.db.roles import Role, RoleRead
 from src.db.user_organizations import UserOrganization
 from src.db.usergroup_user import UserGroupUser
 from src.db.usergroups import UserGroup, UserGroupRead
-from src.db.users import AnonymousUser, APITokenUser, PublicUser, User, UserRead
+from src.db.users import AnonymousUser, APITokenUser, PublicUser, User, UserCreate, UserRead
 from src.security.auth import resolve_acting_user_id
 from src.security.features_utils.usage import check_limits_with_usage, decrease_feature_usage
 from src.security.org_auth import is_org_member
@@ -27,7 +29,9 @@ from src.security.rbac.constants import ADMIN_ROLE_ID
 from src.services.orgs.invites import send_invite_email
 from src.services.orgs.orgs import get_org_default_language, rbac_check
 from src.services.search.normalization import LIKE_ESCAPE_CHAR, build_like_pattern
-from src.services.users.emails import send_role_changed_email
+from src.services.users.emails import send_account_credentials_email, send_role_changed_email
+from src.services.users.password_generator import generate_random_password
+from src.services.users.users import create_user
 from src.services.webhooks.dispatch import dispatch_webhooks
 
 logger = logging.getLogger(__name__)
@@ -765,6 +769,108 @@ async def update_user_role(
             logger.warning("record_org_admin_in_loops failed for user %s", user_id)
 
     return {"detail": "User role updated"}
+
+
+async def admin_create_user(
+    request: Request,
+    db_session: AsyncSession,
+    current_user: PublicUser | AnonymousUser,
+    org_id: int,
+    name: str,
+    email: EmailStr,
+):
+    """Create a user on behalf of an administrator and email their credentials.
+
+    The admin supplies a display name + email. We derive a unique username from
+    the email local-part, split the name into first/last, generate a strong
+    random password, and delegate to ``create_user`` (which hashes the password,
+    enforces complexity + uniqueness, auto-verifies email in OSS, and links the
+    user to the org as role 4). The plaintext password is then emailed to the
+    user as a one-time credential and returned once to the admin.
+    """
+    # Resolve the organization
+    org_stmt = select(Organization).where(Organization.id == org_id)
+    org = (await db_session.execute(org_stmt)).scalars().first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    # Resolve the acting admin (for the email "sent by")
+    admin_stmt = select(User).where(User.id == current_user.id)
+    admin = (await db_session.execute(admin_stmt)).scalars().first()
+    admin_name = ""
+    if admin:
+        admin_name = (admin.first_name or admin.username or "").strip()
+
+    # Derive a unique username from the email local-part
+    local_part = str(email).split("@", 1)[0]
+    base_username = re.sub(r"[^a-z0-9]", "", local_part.lower()) or "user"
+    username = base_username
+    suffix = 1
+    while (
+        await db_session.execute(select(User).where(User.username == username))
+    ).scalars().first():
+        suffix += 1
+        username = f"{base_username}{suffix}"
+
+    # Split the display name into first / last
+    name_parts = name.strip().split(None, 1)
+    first_name = name_parts[0] if name_parts else ""
+    last_name = name_parts[1].strip() if len(name_parts) > 1 else ""
+
+    # Generate a one-time password
+    password = generate_random_password()
+
+    # Delegate to the existing creator (validates complexity, hashes, checks
+    # conflicts, links to the org). In OSS this does not send any email.
+    user_object = UserCreate(
+        username=username,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        password=password,
+    )
+    user_read = await create_user(
+        request, db_session, current_user, user_object, org_id
+    )
+
+    # Email the credentials as a one-time "ticket" (degrade gracefully if the
+    # mailer fails — the user is still created; the admin still sees the password).
+    from src.services.email.utils import get_org_signup_base_url
+
+    org_base_url = await get_org_signup_base_url(
+        org.slug, request, db_session=db_session, org_id=org.id
+    )
+    login_url = f"{org_base_url}/login"
+
+    lang = "en"
+    try:
+        org_config_stmt = select(OrganizationConfig).where(OrganizationConfig.org_id == org.id)
+        org_config = (await db_session.execute(org_config_stmt)).scalars().first()
+        lang = get_org_default_language(org_config)
+    except Exception:
+        pass
+
+    email_sent = True
+    try:
+        send_account_credentials_email(
+            email=email,
+            org_name=org.name,
+            admin_name=admin_name,
+            username=username,
+            login_url=login_url,
+            password=password,
+            lang=lang,
+        )
+    except Exception:
+        logger.exception("Failed to send credentials email to %s", email)
+        email_sent = False
+
+    return {
+        "user": user_read,
+        "username": username,
+        "password": password,
+        "email_sent": email_sent,
+    }
 
 
 async def invite_batch_users(

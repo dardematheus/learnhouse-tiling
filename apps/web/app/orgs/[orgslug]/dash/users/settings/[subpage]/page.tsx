@@ -2,10 +2,11 @@
 import React, { useEffect, use } from 'react';
 import { motion } from 'motion/react'
 import { getUriWithOrg } from '@services/config/config'
-import { ScanEye, SquareUserRound, UserPlus, Users, Shield } from 'lucide-react'
+import { ScanEye, SquareUserRound, UserPlus, UserRoundPlus, Users, Shield } from 'lucide-react'
 import { Breadcrumbs } from '@components/Objects/Breadcrumbs/Breadcrumbs'
 import OrgUsers from '@components/Dashboard/Pages/Users/OrgUsers/OrgUsers'
 import OrgAccess from '@components/Dashboard/Pages/Users/OrgAccess/OrgAccess'
+import CreateUser from '@components/Dashboard/Pages/Users/CreateUser/CreateUser'
 import OrgUsersAdd from '@components/Dashboard/Pages/Users/OrgUsersAdd/OrgUsersAdd'
 import OrgUserGroups from '@components/Dashboard/Pages/Users/OrgUserGroups/OrgUserGroups'
 import OrgRoles from '@components/Dashboard/Pages/Users/OrgRoles/OrgRoles'
@@ -37,6 +38,10 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
     if (params.subpage == 'add') {
       setH1Label(t('dashboard.users.settings.pages.add.title'))
       setH2Label(t('dashboard.users.settings.pages.add.subtitle'))
+    }
+    if (params.subpage == 'create') {
+      setH1Label(t('dashboard.users.settings.pages.create_user.title'))
+      setH2Label(t('dashboard.users.settings.pages.create_user.subtitle'))
     }
     if (params.subpage == 'usergroups') {
       setH1Label(t('dashboard.users.settings.pages.usergroups.title'))
@@ -95,6 +100,13 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
       active: params.subpage === 'add',
     },
     {
+      key: 'create',
+      label: t('dashboard.users.settings.tabs.create_user'),
+      icon: <UserRoundPlus size={16} />,
+      href: getUriWithOrg(params.orgslug, '') + `/dash/users/settings/create`,
+      active: params.subpage === 'create',
+    },
+    {
       key: 'audit-logs',
       label: t('dashboard.users.settings.tabs.audit_logs'),
       icon: <ShieldAlert size={16} />,
@@ -134,6 +146,7 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
         {params.subpage == 'users' ? <OrgUsers /> : ''}
         {params.subpage == 'signups' ? <OrgAccess /> : ''}
         {params.subpage == 'add' ? <OrgUsersAdd /> : ''}
+        {params.subpage == 'create' ? <CreateUser /> : ''}
         {params.subpage == 'usergroups' ? <><div className="h-6"></div><OrgUserGroups /></> : ''}
         {params.subpage == 'roles' ? <><div className="h-6"></div><OrgRoles /></> : ''}
         {params.subpage == 'audit-logs' ? <><div className="h-6"></div><OrgAuditLogs /></> : ''}

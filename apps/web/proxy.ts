@@ -270,6 +270,41 @@ export default async function proxy(req: NextRequest) {
   }
 
   // -------------------------------------------------------------------------
+  // Force login: every unauthenticated visitor is redirected to /login.
+  //
+  // Self sign-up is disabled (administrators create all accounts from the org
+  // dashboard), so /signup is intentionally NOT on the public allowlist — an
+  // anonymous visitor hitting it (or any other page) is bounced to /login. We
+  // branch on the non-httpOnly LH_session marker cookie, the same best-effort
+  // signal the apex login-first logic below relies on; sensitive server
+  // components still re-verify via getServerSession(). Exempted paths: the auth
+  // entry pages, SSO/callback bridges, the cross-domain redirect bridge, the
+  // admin area (it has its own auth), and operational metadata (health, sitemap,
+  // robots, podcast feed) which aren't user-facing pages.
+  // -------------------------------------------------------------------------
+  const isPublicPath =
+    pathname === '/login' ||
+    pathname === '/forgot' ||
+    pathname === '/reset' ||
+    pathname === '/verify-email' ||
+    pathname === '/redirect_from_auth' ||
+    pathname === '/sitemap.xml' ||
+    pathname === '/robots.txt' ||
+    pathname.startsWith('/health') ||
+    pathname.startsWith('/auth/sso/') ||
+    pathname.startsWith('/auth/callback/') ||
+    pathname.startsWith('/auth/token-exchange') ||
+    pathname.startsWith('/admin') ||
+    /^\/podcast\/[^/]+\/feed$/.test(pathname)
+
+  const hasSession = !!req.cookies.get('LH_session')?.value
+  if (!hasSession && !isPublicPath) {
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('redirect', `${pathname}${search}`)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // -------------------------------------------------------------------------
   // 1b. Legacy /dashboard/* → hub redirects
   //
   //    The old platform (learnhouse.app) used /dashboard/{slug}/plan, /dashboard/

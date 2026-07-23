@@ -26,6 +26,7 @@ function CreateUser() {
   const queryClient = useQueryClient()
 
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -34,6 +35,7 @@ function CreateUser() {
 
   const reset = () => {
     setName('')
+    setUsername('')
     setEmail('')
     setError('')
     setResult(null)
@@ -56,6 +58,10 @@ function CreateUser() {
       setError(t('dashboard.users.create_user.errors.missing_fields'))
       return
     }
+    if (!username.trim()) {
+      setError(t('dashboard.users.create_user.errors.missing_username', { defaultValue: 'Username is required' }))
+      return
+    }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError(t('dashboard.users.create_user.errors.invalid_email'))
       return
@@ -64,7 +70,7 @@ function CreateUser() {
     setSubmitting(true)
     const toastId = toast.loading(t('dashboard.users.create_user.toasts.creating'))
     try {
-      const res = await createOrgUser(org.id, name.trim(), email.trim(), access_token)
+      const res = await createOrgUser(org.id, name.trim(), username.trim(), email.trim(), access_token)
       if (!res.success) {
         const msg = getErrorMessage(res.data?.detail, t('dashboard.users.create_user.errors.create_failed'))
         setError(msg)
@@ -110,8 +116,19 @@ function CreateUser() {
                 </label>
                 <input
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                   placeholder={t('dashboard.users.create_user.name_placeholder')}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 bg-gray-50/50 placeholder:italic placeholder:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  {t('dashboard.users.create_user.username_label', { defaultValue: 'Username' })}
+                </label>
+                <input
+                  value={username}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+                  placeholder={t('dashboard.users.create_user.username_placeholder', { defaultValue: 'username' })}
                   className="w-full rounded-lg border border-gray-200 px-4 py-3 bg-gray-50/50 placeholder:italic placeholder:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
                 />
               </div>
@@ -122,7 +139,7 @@ function CreateUser() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   placeholder={t('dashboard.users.create_user.email_placeholder')}
                   className="w-full rounded-lg border border-gray-200 px-4 py-3 bg-gray-50/50 placeholder:italic placeholder:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
                 />

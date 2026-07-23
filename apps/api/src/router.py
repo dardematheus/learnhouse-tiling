@@ -29,8 +29,6 @@ from src.routers.courses.activities import activities, blocks
 from src.routers.podcasts import podcasts as podcasts_router_module
 from src.routers.podcasts import episodes as episodes_router_module
 from src.routers.boards import boards as boards_router_module
-from src.routers.playgrounds import playgrounds as playgrounds_router_module
-from src.routers.playgrounds import playgrounds_generator as playgrounds_generator_router
 from src.core.ee_hooks import register_ee_routers
 from src.core.deployment_mode import get_deployment_mode
 from src.services.dev.dev import isDevModeEnabledOrRaise
@@ -308,18 +306,6 @@ v1_router.include_router(
     prefix="/boards",
     tags=["boards", "boards-playground"],
     dependencies=[Depends(require_authenticated_user), Depends(require_plan_for_boards("personal", "Boards"))]
-)
-v1_router.include_router(
-    playgrounds_router_module.router,
-    prefix="/playgrounds",
-    tags=["playgrounds"],
-    dependencies=[Depends(require_authenticated_user), Depends(require_plan_for_playgrounds("personal", "Playgrounds"))]
-)
-v1_router.include_router(
-    playgrounds_generator_router.router,
-    prefix="/playgrounds",
-    tags=["playgrounds", "playgrounds-generator"],
-    dependencies=[Depends(require_authenticated_user), Depends(require_plan_for_playgrounds("personal", "Playgrounds"))]
 )
 
 v1_router.include_router(

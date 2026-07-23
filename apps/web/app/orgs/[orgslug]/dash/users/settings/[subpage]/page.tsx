@@ -7,7 +7,6 @@ import { Breadcrumbs } from '@components/Objects/Breadcrumbs/Breadcrumbs'
 import OrgUsers from '@components/Dashboard/Pages/Users/OrgUsers/OrgUsers'
 import OrgAccess from '@components/Dashboard/Pages/Users/OrgAccess/OrgAccess'
 import CreateUser from '@components/Dashboard/Pages/Users/CreateUser/CreateUser'
-import OrgUsersAdd from '@components/Dashboard/Pages/Users/OrgUsersAdd/OrgUsersAdd'
 import OrgUserGroups from '@components/Dashboard/Pages/Users/OrgUserGroups/OrgUserGroups'
 import OrgRoles from '@components/Dashboard/Pages/Users/OrgRoles/OrgRoles'
 import OrgAuditLogs from '@components/Dashboard/Pages/Org/OrgAuditLogs/OrgAuditLogs'
@@ -34,10 +33,6 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
     if (params.subpage == 'signups') {
       setH1Label(t('dashboard.users.settings.pages.signups.title'))
       setH2Label(t('dashboard.users.settings.pages.signups.subtitle'))
-    }
-    if (params.subpage == 'add') {
-      setH1Label(t('dashboard.users.settings.pages.add.title'))
-      setH2Label(t('dashboard.users.settings.pages.add.subtitle'))
     }
     if (params.subpage == 'create') {
       setH1Label(t('dashboard.users.settings.pages.create_user.title'))
@@ -93,13 +88,6 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
       active: params.subpage === 'signups',
     },
     {
-      key: 'add',
-      label: t('dashboard.users.settings.tabs.add'),
-      icon: <UserPlus size={16} />,
-      href: getUriWithOrg(params.orgslug, '') + `/dash/users/settings/add`,
-      active: params.subpage === 'add',
-    },
-    {
       key: 'create',
       label: t('dashboard.users.settings.tabs.create_user'),
       icon: <UserRoundPlus size={16} />,
@@ -145,7 +133,6 @@ function UsersSettingsPage(props: { params: Promise<SettingsParams> }) {
       >
         {params.subpage == 'users' ? <OrgUsers /> : ''}
         {params.subpage == 'signups' ? <OrgAccess /> : ''}
-        {params.subpage == 'add' ? <OrgUsersAdd /> : ''}
         {params.subpage == 'create' ? <CreateUser /> : ''}
         {params.subpage == 'usergroups' ? <><div className="h-6"></div><OrgUserGroups /></> : ''}
         {params.subpage == 'roles' ? <><div className="h-6"></div><OrgRoles /></> : ''}

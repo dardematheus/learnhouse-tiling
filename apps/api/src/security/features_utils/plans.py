@@ -19,11 +19,9 @@ PLAN_HIERARCHY: list[str] = ["free", "personal", "personal-family", "standard", 
 FEATURE_PLAN_REQUIREMENTS: dict[str, PlanLevel] = {
     # AI is available from the free plan (metered by a starter credit allowance);
     # access is gated by remaining AI credits rather than by plan tier.
-    "ai": "free",
     "analytics": "standard",
     "collaboration": "standard",
     "communities": "standard",
-    "payments": "standard",
     "podcasts": "standard",
     "seo": "standard",
     "usergroups": "standard",
@@ -32,7 +30,6 @@ FEATURE_PLAN_REQUIREMENTS: dict[str, PlanLevel] = {
     "boards": "personal",
     "certifications": "pro",
     "custom_domains": "pro",
-    "playgrounds": "personal",
     "roles": "pro",
     "versioning": "pro",
     "analytics_advanced": "pro",

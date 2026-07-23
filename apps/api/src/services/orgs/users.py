@@ -778,12 +778,14 @@ async def admin_create_user(
     org_id: int,
     name: str,
     email: EmailStr,
+    username: str | None = None,
 ):
     """Create a user on behalf of an administrator and email their credentials.
 
-    The admin supplies a display name + email. We derive a unique username from
-    the email local-part, split the name into first/last, generate a strong
-    random password, and delegate to ``create_user`` (which hashes the password,
+    The admin supplies a display name, username, and email. We use the provided
+    username when present, otherwise derive a unique username from the email
+    local-part, split the name into first/last, generate a strong random
+    password, and delegate to ``create_user`` (which hashes the password,
     enforces complexity + uniqueness, auto-verifies email in OSS, and links the
     user to the org as role 4). The plaintext password is then emailed to the
     user as a one-time credential and returned once to the admin.
@@ -801,16 +803,20 @@ async def admin_create_user(
     if admin:
         admin_name = (admin.first_name or admin.username or "").strip()
 
-    # Derive a unique username from the email local-part
-    local_part = str(email).split("@", 1)[0]
-    base_username = re.sub(r"[^a-z0-9]", "", local_part.lower()) or "user"
-    username = base_username
-    suffix = 1
-    while (
-        await db_session.execute(select(User).where(User.username == username))
-    ).scalars().first():
-        suffix += 1
-        username = f"{base_username}{suffix}"
+    # Use the provided username when available; otherwise derive one from the
+    # email local-part.
+    if username:
+        username = re.sub(r"\s+", "", username.strip())
+    if not username:
+        local_part = str(email).split("@", 1)[0]
+        base_username = re.sub(r"[^a-z0-9]", "", local_part.lower()) or "user"
+        username = base_username
+        suffix = 1
+        while (
+            await db_session.execute(select(User).where(User.username == username))
+        ).scalars().first():
+            suffix += 1
+            username = f"{base_username}{suffix}"
 
     # Split the display name into first / last
     name_parts = name.strip().split(None, 1)

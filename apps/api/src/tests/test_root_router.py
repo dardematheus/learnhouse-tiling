@@ -65,7 +65,6 @@ def _install_stub_modules(monkeypatch: pytest.MonkeyPatch) -> None:
     install_package("src.routers.courses.activities")
     install_package("src.routers.communities")
     install_package("src.routers.podcasts")
-    install_package("src.routers.playgrounds")
     install_package("src.routers.integrations")
     install_package("src.services")
     install_package("src.services.dev")
@@ -241,21 +240,7 @@ def _install_stub_modules(monkeypatch: pytest.MonkeyPatch) -> None:
     sys.modules["src.routers.podcasts"].episodes = sys.modules[
         "src.routers.podcasts.episodes"
     ]
-
-    install_router_module(
-        "src.routers.playgrounds.playgrounds", "src.routers.playgrounds.playgrounds"
-    )
-    install_router_module(
-        "src.routers.playgrounds.playgrounds_generator",
-        "src.routers.playgrounds.playgrounds_generator",
-    )
-    sys.modules["src.routers.playgrounds"].playgrounds = sys.modules[
-        "src.routers.playgrounds.playgrounds"
-    ]
-    sys.modules["src.routers.playgrounds"].playgrounds_generator = sys.modules[
-        "src.routers.playgrounds.playgrounds_generator"
-    ]
-
+    
     install(
         "src.core.ee_hooks",
         register_ee_routers=lambda _router: None,

@@ -64,11 +64,6 @@ else:
 PYEOF
 
 echo ""
-echo "=== Subindo os serviços (build local) ==="
-cd "$INSTALL_DIR"
-docker compose build learnhouse-app
-docker compose up -d
-echo ""
 echo "   Config editável em: ${INSTALL_DIR}/.env"
 echo "   Compose em:         ${INSTALL_DIR}/docker-compose.yml"
 echo "   Logs:                cd ${INSTALL_DIR} && docker compose logs -f"

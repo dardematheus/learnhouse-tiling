@@ -10,7 +10,6 @@ export type ContentResultType =
   | 'user'
   | 'community'
   | 'discussion'
-  | 'playground'
   | 'podcast'
 
 export interface ContentResult {
@@ -38,7 +37,10 @@ function normalize(data: any): ContentResult[] {
     })
   }
   for (const u of data.users ?? []) {
-    const fullName = [u.first_name, u.last_name].filter(Boolean).join(' ').trim()
+    const fullName = [u.first_name, u.last_name]
+      .filter(Boolean)
+      .join(' ')
+      .trim()
     out.push({
       id: u.user_uuid,
       type: 'user',
@@ -63,16 +65,9 @@ function normalize(data: any): ContentResult[] {
       type: 'discussion',
       title: d.title ?? d.content?.slice(0, 80) ?? '',
       subtitle: d.content ? d.content.slice(0, 100) : undefined,
-      href: community ? `/dash/communities/${community}/discussions` : '/dash/communities',
-    })
-  }
-  for (const p of data.playgrounds ?? []) {
-    out.push({
-      id: p.playground_uuid,
-      type: 'playground',
-      title: p.name,
-      subtitle: p.description ?? undefined,
-      href: '/dash/playgrounds',
+      href: community
+        ? `/dash/communities/${community}/discussions`
+        : '/dash/communities',
     })
   }
   for (const p of data.podcasts ?? []) {
@@ -99,7 +94,14 @@ export function useContentSearch(query: string) {
   const { data, error, isLoading } = useQuery({
     queryKey: ['dash-search', orgslug, trimmed, accessToken ?? null],
     queryFn: async () => {
-      const res = await searchOrgContent(orgslug, trimmed, 1, 5, null, accessToken)
+      const res = await searchOrgContent(
+        orgslug,
+        trimmed,
+        1,
+        5,
+        null,
+        accessToken
+      )
       return res?.success ? normalize(res.data) : []
     },
     enabled,

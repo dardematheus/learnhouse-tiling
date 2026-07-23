@@ -21,7 +21,6 @@ import {
   ArrowsInSimple,
   ArrowCounterClockwise,
   PencilSimple,
-  Lightning,
   SkipForward,
   Lock,
   DotsThree,
@@ -34,6 +33,7 @@ import {
   Table,
   Check,
   GraduationCap,
+  Lightning,
 } from '@phosphor-icons/react'
 import { FilePenLine } from 'lucide-react'
 import { useOrg } from '@components/Contexts/OrgContext'
@@ -86,14 +86,6 @@ const STEP_CONFIG: Record<
     actionHref: '',
     pattern: `repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(167,243,208,0.1) 8px, rgba(167,243,208,0.1) 9px), repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(167,243,208,0.1) 8px, rgba(167,243,208,0.1) 9px)`,
     iconColor: 'text-emerald-400',
-  },
-  try_playgrounds: {
-    icon: Lightning,
-    actionLabel: 'Try Playgrounds',
-    actionHref: '/dash/playgrounds',
-    pattern: `radial-gradient(circle, rgba(253,230,138,0.12) 1px, transparent 1px), radial-gradient(circle, rgba(253,186,116,0.08) 1px, transparent 1px)`,
-    patternSize: '14px 14px',
-    iconColor: 'text-amber-400',
   },
   invite_users: {
     icon: UserPlus,
@@ -163,7 +155,6 @@ export default function OnboardingBar() {
     // experience_editor is completed manually via the acknowledge tick
 
     if (/\/editor\/playground\/[^/]+\/edit/.test(pathname)) {
-      completeStep('try_playgrounds')
     }
     if (/\/dash\/users\/settings\/add/.test(pathname)) {
       completeStep('invite_users')

@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils'
 import { Input } from "@components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@components/ui/dialog"
 import { Button } from "@components/ui/button"
-import AIImageButton from '@components/Objects/AI/AIImageButton'
 import { SiLoom, SiYoutube } from '@icons-pack/react-simple-icons'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
 import { useTranslation } from 'react-i18next'
@@ -482,12 +481,6 @@ export default function OrgEditImages() {
                     <UploadCloud size={18} className={cn("", isLogoUploading && "animate-bounce")} />
                     <span>{isLogoUploading ? t('dashboard.organization.images.uploading') : t('dashboard.organization.images.upload_logo')}</span>
                   </button>
-
-                  <AIImageButton
-                    onSelect={handleLogoAISelect}
-                    onSelectFile={handleLogoAIImageFile}
-                    className="font-medium text-sm px-6 py-2.5 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 shadow-xs hover:shadow-sm transition-all duration-300 flex items-center space-x-2"
-                  />
 
                   <div className="flex flex-col text-xs space-y-2 items-center text-gray-500">
                     <div className="flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full">

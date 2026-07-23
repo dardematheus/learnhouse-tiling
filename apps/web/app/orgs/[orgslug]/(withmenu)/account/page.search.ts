@@ -1,9 +1,4 @@
-import {
-  Gear,
-  IdentificationCard,
-  Lock,
-  ShoppingBag,
-} from '@phosphor-icons/react'
+import { Gear, IdentificationCard, Lock } from '@phosphor-icons/react'
 import type { SearchMeta } from '@/lib/dashboard-search/types'
 
 export const searchMetas: SearchMeta[] = [
@@ -32,15 +27,6 @@ export const searchMetas: SearchMeta[] = [
     keywordsKey: 'dashboard.search.entries.account_security.keywords',
     icon: Lock,
     href: '/account/security',
-    group: 'settings',
-  },
-  {
-    id: 'account.purchases',
-    titleKey: 'account.purchases',
-    descriptionKey: 'dashboard.search.entries.account_purchases.description',
-    keywordsKey: 'dashboard.search.entries.account_purchases.keywords',
-    icon: ShoppingBag,
-    href: '/account/purchases',
     group: 'settings',
   },
 ]

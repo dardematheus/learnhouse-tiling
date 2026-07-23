@@ -231,11 +231,12 @@ class TestAuthorizationAndCreationEndpoints:
         assert response.json()["allowed"] is True
         auth_mock.assert_awaited_once()
 
-    async def test_create_user_without_org(self, client):
+    async def test_create_user_without_org_is_disabled(self, client):
+        # Self sign-up is disabled on this fork: POST /api/v1/users/ must reject
+        # with 403 regardless of input and must never reach the creator.
         with patch(
             "src.routers.users.create_user_without_org",
             new_callable=AsyncMock,
-            return_value=_mock_user_read(username="new_user", user_uuid="user_new"),
         ) as create_mock:
             response = await client.post(
                 "/api/v1/users/",
@@ -248,41 +249,22 @@ class TestAuthorizationAndCreationEndpoints:
                 },
             )
 
-        assert response.status_code == 200
-        assert response.json()["username"] == "new_user"
-        create_mock.assert_awaited_once()
-
-    async def test_create_user_with_orgid_invite_only_blocks(self, client):
-        with patch(
-            "src.routers.users.get_org_join_mechanism",
-            new_callable=AsyncMock,
-            return_value="inviteOnly",
-        ):
-            response = await client.post(
-                "/api/v1/users/1",
-                json={
-                    "username": "new_user",
-                    "first_name": "New",
-                    "last_name": "User",
-                    "email": "new@test.com",
-                    "password": "Password123!",
-                },
-            )
-
         assert response.status_code == 403
-        assert "invite" in response.json()["detail"].lower()
+        assert "disabled" in response.json()["detail"].lower()
+        create_mock.assert_not_awaited()
 
-    async def test_create_user_with_orgid_open_calls_service(self, client):
+    async def test_create_user_with_orgid_is_disabled_when_open(self, client):
+        # Even an "open" org must not allow self sign-up: the guard fires before
+        # the join-mechanism check, so create_user is never reached.
         with (
             patch(
                 "src.routers.users.get_org_join_mechanism",
                 new_callable=AsyncMock,
                 return_value="open",
-            ),
+            ) as join_mock,
             patch(
                 "src.routers.users.create_user",
                 new_callable=AsyncMock,
-                return_value=_mock_user_read(username="new_user", user_uuid="user_new"),
             ) as create_mock,
         ):
             response = await client.post(
@@ -296,11 +278,37 @@ class TestAuthorizationAndCreationEndpoints:
                 },
             )
 
-        assert response.status_code == 200
-        assert response.json()["user_uuid"] == "user_new"
-        create_mock.assert_awaited_once()
+        assert response.status_code == 403
+        assert "disabled" in response.json()["detail"].lower()
+        join_mock.assert_not_awaited()
+        create_mock.assert_not_awaited()
 
-    async def test_create_user_with_invite_success(self, client):
+    async def test_create_user_with_orgid_is_disabled_when_invite_only(self, client):
+        # An invite-only org also cannot be self-joined: the self-signup guard
+        # takes precedence over the invite gate.
+        with patch(
+            "src.routers.users.get_org_join_mechanism",
+            new_callable=AsyncMock,
+            return_value="inviteOnly",
+        ) as join_mock:
+            response = await client.post(
+                "/api/v1/users/1",
+                json={
+                    "username": "new_user",
+                    "first_name": "New",
+                    "last_name": "User",
+                    "email": "new@test.com",
+                    "password": "Password123!",
+                },
+            )
+
+        assert response.status_code == 403
+        assert "disabled" in response.json()["detail"].lower()
+        join_mock.assert_not_awaited()
+
+    async def test_create_user_with_invite_code_is_disabled(self, client):
+        # Invite-code self sign-up is disabled too; the creator is never reached
+        # and the invite rate-limit never runs (guard short-circuits first).
         with (
             patch(
                 "src.routers.users.get_org_join_mechanism",
@@ -310,7 +318,6 @@ class TestAuthorizationAndCreationEndpoints:
             patch(
                 "src.routers.users.create_user_with_invite",
                 new_callable=AsyncMock,
-                return_value=_mock_user_read(username="invited", user_uuid="user_invited"),
             ) as create_mock,
         ):
             response = await client.post(
@@ -324,29 +331,9 @@ class TestAuthorizationAndCreationEndpoints:
                 },
             )
 
-        assert response.status_code == 200
-        assert response.json()["username"] == "invited"
-        create_mock.assert_awaited_once()
-
-    async def test_create_user_with_invite_rejects_open_org(self, client):
-        with patch(
-            "src.routers.users.get_org_join_mechanism",
-            new_callable=AsyncMock,
-            return_value="open",
-        ):
-            response = await client.post(
-                "/api/v1/users/1/invite/code123",
-                json={
-                    "username": "invited",
-                    "first_name": "Invited",
-                    "last_name": "User",
-                    "email": "invited@test.com",
-                    "password": "Password123!",
-                },
-            )
-
         assert response.status_code == 403
-        assert "invite code" in response.json()["detail"].lower()
+        assert "disabled" in response.json()["detail"].lower()
+        create_mock.assert_not_awaited()
 
 
 class TestMutationEndpoints:

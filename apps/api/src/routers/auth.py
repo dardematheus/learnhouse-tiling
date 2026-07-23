@@ -477,13 +477,11 @@ class ThirdPartyLogin(BaseModel):
     "/oauth",
     summary="Log in via third-party provider",
     description=(
-        "Sign in or sign up using a third-party OAuth provider (currently Google). "
-        "On success, sets httpOnly access and refresh cookies and returns the user "
-        "profile and tokens."
+        "DISABLED on this instance: third-party (Google) sign-in/sign-up is off. "
+        "Always returns 403. Accounts are created only by org administrators."
     ),
     responses={
-        200: {"description": "OAuth login successful; cookies set and body contains user + tokens."},
-        401: {"description": "Third-party authentication failed"},
+        403: {"description": "Third-party sign-in is disabled on this instance"},
     },
 )
 async def third_party_login(
@@ -494,6 +492,17 @@ async def third_party_login(
     current_user: AnonymousUser = Depends(get_current_user),
     db_session: AsyncSession = Depends(get_db_session),
 ):
+    # Third-party (Google) OAuth is disabled on this fork: it auto-provisions
+    # verified accounts, which defeats "only admins create accounts". The whole
+    # handler rejects up front; the original implementation below is retained
+    # (unreachable) in case the policy is ever reverted. This does NOT affect
+    # the login-wordpress SSO, which injects session cookies directly.
+    raise HTTPException(
+        status_code=403,
+        detail="Third-party sign-in is disabled on this instance.",
+    )
+
+    # ----- unreachable: retained for reference if OAuth is ever re-enabled -----
     import logging
     import redis as _redis
     _logger = logging.getLogger(__name__)

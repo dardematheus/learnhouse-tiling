@@ -32,6 +32,7 @@ from src.db.organizations import (
 from src.core.events.database import get_db_session
 from src.security.auth import get_current_user, get_authenticated_user
 from src.security.features_utils.dependencies import require_org_admin
+from src.services.security.rate_limiting import check_org_user_creation_rate_limit
 from src.services.orgs.orgs import (
     create_org,
     create_org_with_config,
@@ -278,7 +279,22 @@ async def api_create_org_user(
     - Gated by ``require_org_admin`` (strict org admin, role_id == 1; superadmin
       bypass). Anonymous callers are rejected (401), non-admins (403).
     - The password is generated server-side and never chosen by the caller.
+    - Rate-limited per org: each call emails a one-time password, so an
+      unbounded rate enables email bombing (see check_org_user_creation_rate_limit).
     """
+    is_allowed, retry_after = check_org_user_creation_rate_limit(request, org_id)
+    if not is_allowed:
+        minutes = max(1, retry_after // 60)
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                f"Too many user-creation requests. "
+                f"Please try again in about {minutes} minute"
+                f"{'s' if minutes != 1 else ''}."
+            ),
+            headers={"Retry-After": str(retry_after)},
+        )
+
     return await admin_create_user(
         request, db_session, current_user, org_id, args.name, args.email
     )

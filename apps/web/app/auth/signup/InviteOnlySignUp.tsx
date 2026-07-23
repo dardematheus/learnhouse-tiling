@@ -10,8 +10,6 @@ import { AlertTriangle, Info, Mail, User } from 'lucide-react'
 import Link from 'next/link'
 import { signUpWithInviteCode } from '@services/auth/auth'
 import { useOrg } from '@components/Contexts/OrgContext'
-import { signIn } from '@components/Contexts/AuthContext'
-import { getLEARNHOUSE_TOP_DOMAIN_VAL, isOnCustomDomain } from '@services/config/config'
 import { getErrorMessage } from '@services/utils/ts/errorMessage'
 import { useTranslation } from 'react-i18next'
 import { PasswordStrengthIndicator, validatePasswordStrength } from '@components/Auth/PasswordStrengthIndicator'
@@ -111,32 +109,6 @@ function InviteOnlySignUpComponent(props: InviteOnlySignUpProps) {
   })
 
   useEffect(() => { }, [org])
-
-  // Honor a sanitized ?next / ?redirect destination through the
-  // cross-domain /redirect_from_auth handoff; default to /home.
-  const buildCallbackUrl = () => {
-    const params = new URLSearchParams(window.location.search)
-    const raw = params.get('next') ?? params.get('redirect')
-    const dest = raw && /^\/(?!\/)/.test(raw) ? raw : '/home'
-    return `${window.location.origin}/redirect_from_auth?next=${encodeURIComponent(dest)}`
-  }
-
-  const handleGoogleSignIn = () => {
-    // Store org context in cookies before OAuth redirect
-    if (org?.slug) {
-      const topDomain = getLEARNHOUSE_TOP_DOMAIN_VAL();
-      const isSecure = window.location.protocol === 'https:';
-      const secureAttr = isSecure ? '; secure' : '';
-      const baseAttributes = `; path=/; SameSite=Lax${secureAttr}`;
-      // Host-only on custom domains (a .{platformTopDomain} cookie can't be set
-      // from learn.acme.org → browser drops it → callback loses org context).
-      const domainAttr = (topDomain === 'localhost' || isOnCustomDomain()) ? '' : `; domain=.${topDomain}`;
-      document.cookie = `LH_oauth_orgslug=${org.slug}${baseAttributes}${domainAttr}`;
-      document.cookie = `LH_oauth_org_id=${org.id}${baseAttributes}${domainAttr}`;
-    }
-    // Use absolute URL with current origin for custom domain support
-    signIn('google', { callbackUrl: buildCallbackUrl() });
-  };
 
   return (
     <div className="w-full max-w-[420px] py-10">
@@ -333,26 +305,6 @@ function InviteOnlySignUpComponent(props: InviteOnlySignUpProps) {
             </button>
           </Form.Submit>
         </FormLayout>
-
-        {/* Divider */}
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-neutral-200" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-3 text-black/30 bg-white text-xs font-medium">{t('common.or')}</span>
-          </div>
-        </div>
-
-        {/* Google Sign In */}
-        <button
-          onClick={handleGoogleSignIn}
-          disabled={isSubmitting}
-          className="flex justify-center items-center w-full bg-white hover:bg-neutral-50 text-black space-x-3 font-medium p-3 rounded-lg border border-neutral-200 transition-all text-sm disabled:opacity-50"
-        >
-          <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="" className="w-4 h-4" />
-          <span>{t('auth.sign_in_with_google')}</span>
-        </button>
 
         {/* Login Link */}
         <p className="text-center text-sm text-black/35 mt-6">

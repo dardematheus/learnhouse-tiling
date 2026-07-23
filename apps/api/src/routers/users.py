@@ -52,6 +52,25 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Self sign-up is disabled on this fork (research-center model): only org
+# administrators create accounts, via POST /orgs/{org_id}/users (gated by
+# require_org_admin). These public creation routes stay declared so the OpenAPI
+# surface is consistent, but hard-reject with 403 — mirroring the 403 the
+# frontend already returns on its signup route. Closing them at the backend is
+# what actually enforces "only admins create accounts": the /users router
+# admits AnonymousUser (get_current_user never raises 401) and rbac_check
+# allows anonymous create, so without this guard anyone could self-register by
+# hitting the API directly.
+SELF_SIGNUP_DISABLED = (
+    "Self sign-up is disabled on this instance. "
+    "Only administrators can create accounts."
+)
+
+
+def _reject_self_signup() -> None:
+    raise HTTPException(status_code=403, detail=SELF_SIGNUP_DISABLED)
+
+
 SESSION_CACHE_TTL = 600  # 10 minutes
 
 
@@ -167,10 +186,9 @@ async def api_get_authorization_status(
     response_model=UserRead,
     tags=["users"],
     summary="Create user in organization",
-    description="Create a user and attach them to the given organization. Rejected if the organization is invite-only — use the invite-code endpoint instead.",
+    description="DISABLED on this instance: self sign-up is off. Accounts are created only by org administrators via POST /orgs/{org_id}/users. Always returns 403.",
     responses={
-        200: {"description": "User created and attached to the organization.", "model": UserRead},
-        403: {"description": "Organization is invite-only; an invite code is required"},
+        403: {"description": "Self sign-up is disabled on this instance"},
     },
 )
 async def api_create_user_with_orgid(
@@ -182,9 +200,15 @@ async def api_create_user_with_orgid(
     org_id: int,
 ) -> UserRead:
     """
-    Create User with Org ID
-    """
+    Create User with Org ID — DISABLED.
 
+    Self sign-up is off on this fork; the route always rejects with 403. The
+    original create path below is retained (unreachable) in case the policy is
+    ever reverted. Accounts are created by admins via /orgs/{org_id}/users.
+    """
+    _reject_self_signup()
+
+    # ----- unreachable: retained for reference if self-signup is re-enabled -----
     # TODO(fix) : This is temporary, logic should be moved to service
     if (
         await get_org_join_mechanism(request, org_id, current_user, db_session)
@@ -203,10 +227,9 @@ async def api_create_user_with_orgid(
     response_model=UserRead,
     tags=["users"],
     summary="Create user with invite code",
-    description="Create a user and attach them to the given organization using an invite code. Only valid when the organization is configured as invite-only.",
+    description="DISABLED on this instance: self sign-up (including invite-code acceptance) is off. Accounts are created only by org administrators via POST /orgs/{org_id}/users. Always returns 403.",
     responses={
-        200: {"description": "User created and attached via invite code.", "model": UserRead},
-        403: {"description": "Organization does not require an invite code"},
+        403: {"description": "Self sign-up is disabled on this instance"},
     },
 )
 async def api_create_user_with_orgid_and_invite(
@@ -219,8 +242,15 @@ async def api_create_user_with_orgid_and_invite(
     org_id: int,
 ) -> UserRead:
     """
-    Create User with Org ID and invite code
+    Create User with Org ID and invite code — DISABLED.
+
+    Self sign-up (including invite-code acceptance) is off on this fork; the
+    route always rejects with 403. The original invite-accept path below is
+    retained (unreachable) in case the policy is ever reverted.
     """
+    _reject_self_signup()
+
+    # ----- unreachable: retained for reference if self-signup is re-enabled -----
     # Throttle invite-code guessing per IP+org. ``detail`` is a plain string
     # so the frontend's generic error path renders it as-is.
     is_allowed, retry_after = check_invite_acceptance_rate_limit(request, org_id)
@@ -256,10 +286,9 @@ async def api_create_user_with_orgid_and_invite(
     response_model=UserRead,
     tags=["users"],
     summary="Create user without organization",
-    description="Create a user account that is not attached to any organization at creation time.",
+    description="DISABLED on this instance: self sign-up is off. Accounts are created only by org administrators via POST /orgs/{org_id}/users. Always returns 403.",
     responses={
-        200: {"description": "User account created.", "model": UserRead},
-        400: {"description": "Password fails validation, email already registered, or username taken"},
+        403: {"description": "Self sign-up is disabled on this instance"},
     },
 )
 async def api_create_user_without_org(
@@ -270,8 +299,15 @@ async def api_create_user_without_org(
     user_object: UserCreate,
 ) -> UserRead:
     """
-    Create User
+    Create User — DISABLED.
+
+    Self sign-up is off on this fork; the route always rejects with 403. The
+    original create-without-org call below is retained (unreachable) in case
+    the policy is ever reverted.
     """
+    _reject_self_signup()
+
+    # ----- unreachable: retained for reference if self-signup is re-enabled -----
     return await create_user_without_org(request, db_session, current_user, user_object)
 
 

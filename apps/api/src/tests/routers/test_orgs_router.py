@@ -244,6 +244,55 @@ class TestOrgUserEndpoints:
         assert response.status_code == 200
         assert response.json()["users"] == []
 
+    async def test_admin_create_user(self, client):
+        # Admin-only account creation: rate limit allowed, creator invoked, 200.
+        with (
+            patch(
+                "src.routers.orgs.orgs.check_org_user_creation_rate_limit",
+                return_value=(True, 0),
+            ),
+            patch(
+                "src.routers.orgs.orgs.admin_create_user",
+                new_callable=AsyncMock,
+                return_value={
+                    "user": {"username": "new_user"},
+                    "username": "new_user",
+                    "password": "TempPass123!",
+                    "email_sent": True,
+                },
+            ) as create_mock,
+        ):
+            response = await client.post(
+                "/api/v1/orgs/1/users",
+                json={"name": "New User", "email": "new@test.com"},
+            )
+
+        assert response.status_code == 200
+        assert response.json()["username"] == "new_user"
+        create_mock.assert_awaited_once()
+
+    async def test_admin_create_user_rate_limited(self, client):
+        # When the per-org creation limit is exceeded the handler returns 429
+        # without invoking the creator (no email bombing).
+        with (
+            patch(
+                "src.routers.orgs.orgs.check_org_user_creation_rate_limit",
+                return_value=(False, 300),
+            ),
+            patch(
+                "src.routers.orgs.orgs.admin_create_user",
+                new_callable=AsyncMock,
+            ) as create_mock,
+        ):
+            response = await client.post(
+                "/api/v1/orgs/1/users",
+                json={"name": "New User", "email": "new@test.com"},
+            )
+
+        assert response.status_code == 429
+        assert "retry-after" in {k.lower() for k in response.headers}
+        create_mock.assert_not_awaited()
+
     async def test_join_org(self, client):
         with patch(
             "src.routers.orgs.orgs.join_org",

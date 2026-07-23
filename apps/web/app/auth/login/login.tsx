@@ -10,7 +10,7 @@ import { checkSSOEnabled, redirectToSSOLogin } from '@services/auth/sso'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@components/Contexts/AuthContext'
-import { getLEARNHOUSE_TOP_DOMAIN_VAL, getDeploymentMode, isOnCustomDomain } from '@services/config/config'
+import { getDeploymentMode } from '@services/config/config'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useTranslation } from 'react-i18next'
 import { resendVerificationEmail } from '@services/auth/auth'
@@ -62,25 +62,6 @@ const LoginClient = (props: LoginClientProps) => {
     const dest = raw && /^\/(?!\/)/.test(raw) ? raw : '/home'
     return `${window.location.origin}/redirect_from_auth?next=${encodeURIComponent(dest)}`
   }
-
-  const handleGoogleSignIn = () => {
-    track(AnalyticsEvent.LoginGoogleClicked)
-    // Store org context in cookies before OAuth redirect
-    if (props.org?.slug) {
-      const topDomain = getLEARNHOUSE_TOP_DOMAIN_VAL();
-      const isSecure = window.location.protocol === 'https:';
-      const secureAttr = isSecure ? '; secure' : '';
-      const baseAttributes = `; path=/; SameSite=Lax${secureAttr}`;
-      // Host-only on custom domains: a `.{platformTopDomain}` cookie can't be set
-      // from learn.acme.org (Domain not a suffix of host) → the browser drops it
-      // and the callback loses org context. Omit the Domain there.
-      const domainAttr = (topDomain === 'localhost' || isOnCustomDomain()) ? '' : `; domain=.${topDomain}`;
-      document.cookie = `LH_oauth_orgslug=${props.org.slug}${baseAttributes}${domainAttr}`;
-      document.cookie = `LH_oauth_org_id=${props.org.id}${baseAttributes}${domainAttr}`;
-    }
-    // Use absolute URL with current origin for custom domain support
-    signIn('google', { callbackUrl: buildCallbackUrl() });
-  };
 
   // Check if SSO is enabled for this organization (requires enterprise plan)
   useEffect(() => {
@@ -427,28 +408,21 @@ const LoginClient = (props: LoginClientProps) => {
                 </Form.Submit>
               </FormLayout>
 
-              {/* Divider */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-neutral-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-3 text-black/30 bg-white text-xs font-medium">{t('common.or')}</span>
-                </div>
-              </div>
+              {/* SSO button (enterprise only). Google sign-in is disabled on
+                  this fork — third-party OAuth is off at the backend, so the
+                  button is removed to avoid a dead flow. The divider + section
+                  render only when SSO is available, so OSS shows neither. */}
+              {ssoEnabled && (
+                <>
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-neutral-200" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-3 text-black/30 bg-white text-xs font-medium">{t('common.or')}</span>
+                    </div>
+                  </div>
 
-              {/* Social & SSO Buttons */}
-              <div className="space-y-2.5">
-                <button
-                  onClick={handleGoogleSignIn}
-                  disabled={isSubmitting}
-                  className="flex justify-center items-center w-full bg-white hover:bg-neutral-50 text-black space-x-3 font-medium p-3 rounded-lg border border-neutral-200 transition-all text-sm disabled:opacity-50"
-                >
-                  <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="" className="w-4 h-4" />
-                  <span>{t('auth.sign_in_with_google')}</span>
-                </button>
-
-                {ssoEnabled && (
                   <button
                     onClick={handleSSOLogin}
                     disabled={ssoLoading}
@@ -457,8 +431,8 @@ const LoginClient = (props: LoginClientProps) => {
                     <Shield size={16} />
                     <span>{ssoLoading ? t('common.loading') : t('auth.sign_in_with_sso')}</span>
                   </button>
-                )}
-              </div>
+                </>
+              )}
 
               {/* Sign Up Link */}
               <p className="text-center text-sm text-black/35 mt-6">

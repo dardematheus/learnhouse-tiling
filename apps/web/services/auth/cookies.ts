@@ -50,7 +50,17 @@ export function getCookieDomain(request: NextRequest): string | undefined {
 }
 
 export function getCookieOptions(request: NextRequest) {
-  const isSecure = request.nextUrl.protocol === 'https:'
+  // Derive "secure" from the forwarded proto, not only nextUrl.protocol.
+  // Behind a TLS-terminating reverse proxy (Caddy/nginx forwarding to HTTP:80
+  // inside the container) nextUrl.protocol is 'http:' even on a real HTTPS
+  // connection — trusting only it would drop the Secure flag and let session
+  // cookies travel over plain HTTP. Caddy/nginx set X-Forwarded-Proto by default.
+  const forwardedProto = request.headers
+    .get('x-forwarded-proto')
+    ?.split(',')[0]
+    ?.trim()
+    .toLowerCase()
+  const isSecure = request.nextUrl.protocol === 'https:' || forwardedProto === 'https'
   const domain = getCookieDomain(request)
   return {
     httpOnly: true,

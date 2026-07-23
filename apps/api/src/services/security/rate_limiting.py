@@ -283,6 +283,24 @@ def check_invite_acceptance_rate_limit(request: Request, org_id: int) -> Tuple[b
     return is_allowed, retry_after
 
 
+def check_org_user_creation_rate_limit(request: Request, org_id: int) -> Tuple[bool, int]:
+    """
+    Rate limit admin-initiated user creation at 30 attempts / 5 minutes per org.
+
+    Each creation generates a one-time password and emails it to the new user, so
+    an unbounded rate enables email bombing (and rapid exhaustion of the org's
+    member limit) if an admin session is abused or scripted. Per-org granularity
+    matches the blast radius; legit bulk onboarding simply paces across the window.
+    """
+    key = f"org_user_create:{org_id}"
+    is_allowed, _count, retry_after = check_rate_limit(
+        key=key,
+        max_attempts=30,
+        window_seconds=5 * 60,
+    )
+    return is_allowed, retry_after
+
+
 def check_search_rate_limit(user_id: int) -> Tuple[bool, int]:
     """
     Rate limit search queries at 60/min per authenticated user. Search hits

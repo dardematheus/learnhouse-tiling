@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation'
+import { getServerSession } from '@/lib/auth/server'
 import EmbedActivityClient from './EmbedActivityClient'
 
 type PageProps = {
@@ -14,6 +16,16 @@ function sanitizeBgColor(raw: string | undefined): string | null {
 
 export default async function EmbedActivityPage({ params, searchParams }: PageProps) {
   const { orgslug, courseuuid, activityid } = await params
+
+  // /embed/* is excluded from the proxy login-gate matcher, so enforce the
+  // session here: an anonymous visitor must not read private course content
+  // via the embed route. Mirrors the gate every other page relies on.
+  const session = await getServerSession()
+  if (!session) {
+    const embedPath = `/embed/${orgslug}/course/${courseuuid}/activity/${activityid}`
+    redirect(`/login?redirect=${encodeURIComponent(embedPath)}`)
+  }
+
   const sp = await searchParams
   const bgcolor = sanitizeBgColor(sp.bgcolor)
 

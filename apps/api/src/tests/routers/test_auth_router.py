@@ -456,29 +456,18 @@ class TestAuthRouter:
         assert response.json()["detail"]["code"] == "INVALID_CREDENTIALS"
 
     async def test_oauth_logout_and_email_endpoints(self, client, auth_user):
-        with patch(
-            "src.routers.auth.signWithGoogle",
-            new_callable=AsyncMock,
-            return_value=auth_user,
-        ), patch(
-            "src.routers.auth.create_access_token",
-            return_value="access-token",
-        ), patch(
-            "src.routers.auth.create_refresh_token",
-            return_value="refresh-token",
-        ), patch("src.routers.auth.set_auth_cookies"), patch(
-            "src.routers.auth.get_token_expiry_ms",
-            return_value=12345,
-        ):
-            response = await client.post(
-                "/api/v1/auth/oauth",
-                json={
-                    "email": auth_user.email,
-                    "provider": "google",
-                    "access_token": "google-token",
-                },
-            )
-        assert response.status_code == 200
+        # OAuth is disabled on this fork: /auth/oauth always rejects with 403, so
+        # signWithGoogle / token helpers are never reached. The logout,
+        # verify-email and resend-verification endpoints below still work.
+        response = await client.post(
+            "/api/v1/auth/oauth",
+            json={
+                "email": auth_user.email,
+                "provider": "google",
+                "access_token": "google-token",
+            },
+        )
+        assert response.status_code == 403
 
         with patch(
             "src.routers.auth.extract_jwt_from_request",
@@ -523,146 +512,22 @@ class TestAuthRouter:
             )
         assert response.status_code == 200
 
-    async def test_oauth_failure_path(self, client):
-        with patch(
-            "src.routers.auth.signWithGoogle",
-            new_callable=AsyncMock,
-            return_value=None,
-        ):
-            response = await client.post(
-                "/api/v1/auth/oauth",
-                json={
-                    "email": "missing@test.com",
-                    "provider": "google",
-                    "access_token": "google-token",
-                },
-            )
-
-        assert response.status_code == 401
-
-    async def test_oauth_invalid_org_id_returns_400(self, client, db, org):
-        with patch("src.routers.auth.get_learnhouse_config"):
-            response = await client.post(
-                "/api/v1/auth/oauth",
-                params={"org_id": 9999},
-                json={
-                    "email": "user@test.com",
-                    "provider": "google",
-                    "access_token": "google-token",
-                },
-            )
-        assert response.status_code == 400
-        assert response.json()["detail"] == "Invalid org_id"
-
-    async def test_oauth_org_id_valid_but_no_invite_clears_org_id(self, client, db, org):
-        mock_redis = Mock(get=Mock(return_value=None))
-        mock_config = SimpleNamespace(
-            redis_config=SimpleNamespace(redis_connection_string="redis://localhost:6379")
-        )
-        with patch("src.routers.auth.get_learnhouse_config", return_value=mock_config), patch(
-            "redis.Redis.from_url", return_value=mock_redis
-        ), patch(
-            "src.routers.auth.signWithGoogle",
-            new_callable=AsyncMock,
-            return_value=None,
-        ):
-            response = await client.post(
-                "/api/v1/auth/oauth",
-                params={"org_id": 1},
-                json={
-                    "email": "user@test.com",
-                    "provider": "google",
-                    "access_token": "google-token",
-                },
-            )
-        assert response.status_code == 401
-
-    async def test_oauth_org_id_redis_unavailable_clears_org_id(self, client, db, org):
-        mock_config = SimpleNamespace(
-            redis_config=SimpleNamespace(redis_connection_string="redis://localhost:6379")
-        )
-        with patch("src.routers.auth.get_learnhouse_config", return_value=mock_config), patch(
-            "redis.Redis.from_url", side_effect=RuntimeError("Redis down")
-        ), patch(
-            "src.routers.auth.signWithGoogle",
-            new_callable=AsyncMock,
-            return_value=None,
-        ):
-            response = await client.post(
-                "/api/v1/auth/oauth",
-                params={"org_id": 1},
-                json={
-                    "email": "user@test.com",
-                    "provider": "google",
-                    "access_token": "google-token",
-                },
-            )
-        assert response.status_code == 401
-
-    async def test_oauth_org_id_google_unverified_email_returns_401(self, client, db, org):
-        """OAuth org_id invite gate for provider=google: when Google does not
-        return a verified email the request is rejected with 401 (lines 493-499)."""
-        with patch(
-            "src.routers.auth.get_google_user_info",
-            new_callable=AsyncMock,
-            return_value={"email": "", "email_verified": False},
-        ):
-            response = await client.post(
-                "/api/v1/auth/oauth",
-                params={"org_id": 1},
-                json={
-                    "email": "user@test.com",
-                    "provider": "google",
-                    "access_token": "google-token",
-                },
-            )
-        assert response.status_code == 401
-        assert "verified email" in response.json()["detail"].lower()
-
-    async def test_oauth_org_id_google_verified_checks_invite_and_closes_redis(
-        self, client, db, org
-    ):
-        """Google returns a verified email -> the invite email is normalised
-        (line 500), the Redis invite key is read (lines 506-513) and the Redis
-        connection is closed in the finally block (lines 520-524). The invite is
-        not found here, so org_id is cleared and signWithGoogle returns None ->
-        401."""
-        # close() raising must be swallowed by the finally block's
-        # ``except Exception: pass`` (lines 523-524).
-        close_mock = Mock(side_effect=RuntimeError("close failed"))
-        mock_redis = Mock(get=Mock(return_value=None), close=close_mock)
-        mock_config = SimpleNamespace(
-            redis_config=SimpleNamespace(redis_connection_string="redis://localhost:6379")
-        )
-        with patch(
-            "src.routers.auth.get_google_user_info",
-            new_callable=AsyncMock,
-            return_value={"email": "User@Test.com", "email_verified": True},
-        ), patch(
-            "src.routers.auth.get_learnhouse_config", return_value=mock_config
-        ), patch(
-            "redis.Redis.from_url", return_value=mock_redis
-        ) as from_url_mock, patch(
-            "src.routers.auth.signWithGoogle",
-            new_callable=AsyncMock,
-            return_value=None,
-        ):
-            response = await client.post(
-                "/api/v1/auth/oauth",
-                params={"org_id": 1},
-                json={
-                    "email": "user@test.com",
-                    "provider": "google",
-                    "access_token": "google-token",
-                },
-            )
-
-        assert response.status_code == 401
-        # Invite key was looked up using the lower-cased Google email.
-        mock_redis.get.assert_called_once_with("invited_user:user@test.com:org:org_test")
-        # The Redis connection from from_url was always closed (finally block).
-        from_url_mock.assert_called_once()
-        close_mock.assert_called_once()
+    async def test_oauth_disabled_always_returns_403(self, client):
+        # Third-party (Google) sign-in is disabled on this fork, so /auth/oauth
+        # rejects with 403 for every valid (provider=google) payload — with or
+        # without org_id — and no OAuth / invite / Redis logic runs. (Non-google
+        # providers are rejected earlier with 422 by the Literal["google"] field,
+        # which equally prevents account creation.) Consolidates the per-path
+        # oauth branch tests that exercised the now-unreachable handler body.
+        cases = [
+            (None, {"email": "missing@test.com", "provider": "google", "access_token": "t"}),
+            ({"org_id": 9999}, {"email": "u@test.com", "provider": "google", "access_token": "t"}),
+            ({"org_id": 1}, {"email": "u@test.com", "provider": "google", "access_token": "t"}),
+        ]
+        for params, body in cases:
+            response = await client.post("/api/v1/auth/oauth", params=params, json=body)
+            assert response.status_code == 403, params
+            assert "disabled" in response.json()["detail"].lower(), params
 
     async def test_verify_email_rate_limited_and_logout_unauthenticated(self, client):
         with patch(

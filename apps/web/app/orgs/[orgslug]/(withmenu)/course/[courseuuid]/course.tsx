@@ -24,7 +24,6 @@ import { queryKeys } from '@/lib/query/keys'
 import { getActivityWithAuthHeader } from '@services/courses/activities'
 import { useTranslation } from 'react-i18next'
 import CourseCommunitySection from '@components/Objects/Communities/CourseCommunitySection'
-import CourseShare from '@components/Objects/Courses/CourseShare/CourseShare'
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics'
 
 const CourseClient = (props: any) => {
@@ -324,10 +323,6 @@ const CourseClient = (props: any) => {
             </div>
             <div className="pb-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
               <h1 className="text-3xl md:text-3xl font-bold">{course.name}</h1>
-              <CourseShare
-                courseName={course.name}
-                courseUrl={getUriWithOrg(orgslug, `/course/${courseuuid}`)}
-              />
             </div>
 
             <div className="flex flex-col md:flex-row gap-8 pt-2">

@@ -1,6 +1,6 @@
 import { useOrg } from '@components/Contexts/OrgContext'
 import { getUriWithOrg } from '@services/config/config'
-import { Books, FolderSimple, ChatsCircle, Headphones, ShoppingBag } from '@phosphor-icons/react'
+import { Books, FolderSimple, ChatsCircle, Headphones } from '@phosphor-icons/react'
 import { menuIcon } from '@components/Objects/Menus/menuIcons'
 import Link from 'next/link'
 import React from 'react'
@@ -14,7 +14,6 @@ const BUILTIN: Record<string, Builtin> = {
   library: { feature: 'folders', link: '/library', labelKey: 'library.library', Icon: FolderSimple },
   podcasts: { feature: 'podcasts', link: '/podcasts', labelKey: 'podcasts.podcasts', Icon: Headphones },
   communities: { feature: 'communities', link: '/communities', labelKey: 'communities.title', Icon: ChatsCircle },
-  store: { feature: 'payments', link: '/store', labelKey: 'common.store', Icon: ShoppingBag },
 }
 
 // Default order when an org has no custom menu config.

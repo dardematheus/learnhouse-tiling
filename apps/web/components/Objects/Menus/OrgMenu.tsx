@@ -1,6 +1,5 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { getUriWithOrg } from '@services/config/config'
 import { HeaderProfileBox } from '@components/Security/HeaderProfileBox'
@@ -130,7 +129,7 @@ export const OrgMenu = (props: any) => {
                       className="rounded-md"
                     />
                   ) : (
-                    <LearnHouseLogo logoFilter={colors.logoFilter} />
+                    <LearnHouseLogo textColor={colors.text} />
                   )}
                 </div>
               </Link>
@@ -293,14 +292,14 @@ export const OrgMenu = (props: any) => {
   )
 }
 
-const LearnHouseLogo = ({ logoFilter }: { logoFilter: string }) => {
+const LearnHouseLogo = ({ textColor }: { textColor: string }) => {
+  // Plain-text wordmark. The vector lrn-text.svg spelled "LearnHouse" as
+  // fixed glyph paths, so it couldn't be relabeled — render the brand as text.
   return (
-    <Image
-      src="/lrn-text.svg"
-      alt="CIACD logo"
-      width={133}
-      height={40}
-      style={{ height: 'auto', filter: logoFilter }}
-    />
+    <span
+      className={`font-extrabold tracking-tight text-2xl leading-none ${textColor}`}
+    >
+      CIACD
+    </span>
   )
 }

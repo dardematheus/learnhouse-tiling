@@ -145,18 +145,15 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
               and for the no-org apex panel (platform shows no logo on the image). */}
           {!isEnterprise && !noOrg && (
             <div className="login-topbar">
-              <Link prefetch href="https://learnhouse.app" target="_blank">
-                <img
-                  src="/lrn.svg"
-                  alt="CIACD"
-                  width={30}
-                  height={30}
-                  className={cn(
-                    "transition-opacity hover:opacity-100",
-                    text_color === 'light' ? "opacity-60 invert" : "opacity-40"
-                  )}
-                />
-              </Link>
+              <img
+                src="/lrn.svg"
+                alt="CIACD"
+                width={30}
+                height={30}
+                className={cn(
+                  text_color === 'light' ? "opacity-60 invert" : "opacity-40"
+                )}
+              />
             </div>
           )}
 

@@ -125,7 +125,7 @@ export const OrgMenu = (props: any) => {
                   {org?.logo_image ? (
                     <img
                       src={`${getOrgLogoMediaDirectory(org.org_uuid, org?.logo_image)}`}
-                      alt="Learnhouse"
+                      alt="CIACD"
                       style={{ width: 'auto', height: '100%' }}
                       className="rounded-md"
                     />
@@ -297,7 +297,7 @@ const LearnHouseLogo = ({ logoFilter }: { logoFilter: string }) => {
   return (
     <Image
       src="/lrn-text.svg"
-      alt="LearnHouse logo"
+      alt="CIACD logo"
       width={133}
       height={40}
       style={{ height: 'auto', filter: logoFilter }}

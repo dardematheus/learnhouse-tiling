@@ -258,7 +258,7 @@ function DashLeftMenu() {
           ) : (
             <img
               src="/lrn-dash.svg"
-              alt="Learnhouse logo"
+              alt="CIACD logo"
               className="h-8 w-8"
             />
           )}

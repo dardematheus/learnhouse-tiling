@@ -16,7 +16,6 @@ import {
   DialogTitle,
 } from '@components/ui/dialog'
 import UnsplashImagePicker from '@components/Dashboard/Pages/Course/EditCourseGeneral/UnsplashImagePicker'
-import AIImageButton from '@components/Objects/AI/AIImageButton'
 import toast from 'react-hot-toast'
 import { SafeImage } from '@components/Objects/SafeImage'
 
@@ -235,11 +234,6 @@ export function CommunityThumbnailModal({
                   <ImageIcon size={16} />
                   Browse Unsplash
                 </button>
-                <AIImageButton
-                  onSelect={handleUnsplashSelect}
-                  onSelectFile={handleAIImageFile}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                />
               </div>
             )}
 

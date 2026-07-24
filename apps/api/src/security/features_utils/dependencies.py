@@ -23,9 +23,7 @@ FeatureName = Literal[
     "communities",
     "podcasts",
     "boards",
-    "playgrounds",
     "ai",
-    "payments",
     "usergroups",
 ]
 

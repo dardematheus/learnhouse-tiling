@@ -25,7 +25,6 @@ import {
   Lightbulb
 } from 'lucide-react'
 import UserAvatar from '@components/Objects/UserAvatar'
-import AIImageButton from '@components/Objects/AI/AIImageButton'
 import { updateUserAvatar } from '@services/users/users'
 import { constructAcceptValue } from '@/lib/constants'
 import * as Yup from 'yup'
@@ -504,11 +503,6 @@ const UserEditForm = ({
                       <UploadCloud size={16} className="mr-2" />
                       {t('user.settings.general.change_avatar')}
                     </Button>
-                    <AIImageButton
-                      onSelect={profilePicture.handleAISelect}
-                      onSelectFile={profilePicture.handleAIImageFile}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border border-gray-200 rounded-md bg-white hover:bg-gray-50 transition-colors"
-                    />
                   </>
                 )}
                 <div className="flex items-center text-xs text-gray-500">

@@ -243,6 +243,7 @@ class AdminUserCreate(BaseModel):
     """Admin-supplied payload for creating a user with an emailed credential."""
 
     name: str
+    username: str | None = None
     email: EmailStr
 
 
@@ -296,7 +297,7 @@ async def api_create_org_user(
         )
 
     return await admin_create_user(
-        request, db_session, current_user, org_id, args.name, args.email
+        request, db_session, current_user, org_id, args.name, args.email, args.username
     )
 
 

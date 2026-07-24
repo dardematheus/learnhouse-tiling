@@ -6,7 +6,6 @@ import { BadgeHelp, Check, Minus, Plus, RefreshCcw } from 'lucide-react'
 import { Sparkle } from '@phosphor-icons/react'
 import dynamic from 'next/dynamic'
 const ReactConfetti = dynamic(() => import('react-confetti'), { ssr: false })
-const AIQuizGeneratorModal = dynamic(() => import('@components/Objects/AI/AIQuizGeneratorModal'), { ssr: false })
 import { useEditorProvider } from '@components/Contexts/Editor/EditorContext'
 import { useTranslation } from 'react-i18next'
 
@@ -435,14 +434,6 @@ function QuizBlockComponent(props: any) {
           ))}
         </div>
       </div>
-      {showAIGenerator && (
-        <AIQuizGeneratorModal
-          isOpen={showAIGenerator}
-          onClose={() => setShowAIGenerator(false)}
-          onInsert={applyGeneratedQuiz}
-          activityUuid={activityUuid}
-        />
-      )}
     </NodeViewWrapper>
   )
 }

@@ -17,12 +17,18 @@ import {
 export async function createOrgUser(
   org_id: any,
   name: string,
+  username: string,
   email: string,
   access_token: any
 ) {
   const result = await fetch(
     `${getAPIUrl()}orgs/${org_id}/users`,
-    RequestBodyWithAuthHeader('POST', { name, email }, null, access_token)
+    RequestBodyWithAuthHeader(
+      'POST',
+      { name, username, email },
+      null,
+      access_token
+    )
   )
   const res = await getResponseMetadata(result)
   return res

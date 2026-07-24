@@ -13,7 +13,6 @@ import { signOut } from '@components/Contexts/AuthContext'
 import { getUriWithoutOrg } from '@services/config/config'
 import * as Yup from 'yup'
 import { useTranslation } from 'react-i18next'
-import AccountDangerZone from '@components/Objects/Account/subpages/AccountDangerZone'
 
 const validationSchema = Yup.object().shape({
   old_password: Yup.string().required('validation.required'),
@@ -195,9 +194,6 @@ function AccountSecurity() {
         </div>
       </div>
     </div>
-
-    {/* Danger zone — delete account (also deletes solely-owned orgs + content) */}
-    <AccountDangerZone />
     </>
   )
 }

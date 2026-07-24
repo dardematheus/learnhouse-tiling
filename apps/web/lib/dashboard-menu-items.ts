@@ -7,7 +7,6 @@ import {
   Buildings,
   ChatsCircle,
   ChalkboardSimple,
-  Cube,
   FolderSimple,
   Headphones,
   ChartBar,
@@ -71,14 +70,6 @@ export const DASHBOARD_MENU_ITEMS: DashboardMenuItem[] = [
     icon: ChalkboardSimple,
     labelKey: 'common.boards',
     featureKey: 'boards',
-    defaultDisabled: true,
-  },
-  {
-    id: 'playgrounds',
-    href: '/dash/playgrounds',
-    icon: Cube,
-    labelKey: 'common.playgrounds',
-    featureKey: 'playgrounds',
     defaultDisabled: true,
   },
   {

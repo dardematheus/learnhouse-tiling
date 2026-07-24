@@ -5,7 +5,6 @@ import { Sparkle } from '@phosphor-icons/react'
 import dynamic from 'next/dynamic'
 import { useEditorProvider } from '@components/Contexts/Editor/EditorContext'
 import ScenariosModal from './ScenariosModal'
-const AIScenarioGeneratorModal = dynamic(() => import('@components/Objects/AI/AIScenarioGeneratorModal'), { ssr: false })
 
 interface ScenarioOption {
   id: string
@@ -231,14 +230,6 @@ const ScenariosExtension: React.FC = (props: any) => {
           onSave={handleSave}
         />
       </div>
-      {showAIGenerator && (
-        <AIScenarioGeneratorModal
-          isOpen={showAIGenerator}
-          onClose={() => setShowAIGenerator(false)}
-          onInsert={applyGeneratedScenario}
-          activityUuid={activityUuid}
-        />
-      )}
     </NodeViewWrapper>
   )
 }

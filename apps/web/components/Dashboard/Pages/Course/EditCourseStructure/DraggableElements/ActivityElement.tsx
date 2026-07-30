@@ -434,8 +434,8 @@ function ActivityElement(props: ActivitiyElementProps) {
                   onOpenChange={() => setEditTilingModalOpen(!editTilingModalOpen)}
                   minHeight="no-min"
                   minWidth="md"
-                  dialogTitle="Edit Tiling Activity"
-                  dialogDescription="Update the name, or replace the video and/or PDF file."
+                  dialogTitle="Editar Conteúdo Dividido"
+                  dialogDescription="Atualize o nome, ou substitua o arquivo de vídeo e/ou PDF."
                   dialogContent={
                     <EditTilingActivityModal
                       activity={props.activity}
@@ -447,7 +447,7 @@ function ActivityElement(props: ActivitiyElementProps) {
                   dialogTrigger={
                     <button
                       className="h-7 w-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                      title="Edit tiling activity"
+                      title="Editar atividade de Conteúdo Dividido"
                     >
                       <FilePenLine size={15} />
                     </button>

@@ -40,24 +40,24 @@ function TilingModal({ submitTilingActivity, chapterId }: any) {
       >
         <span className="flex items-center gap-2 bg-white nice-shadow rounded-full px-4 py-1.5 text-sm font-medium text-gray-600">
           <Columns size={18} weight="duotone" className="text-fuchsia-400" />
-          Tiling
+          Conteúdo Dividido
         </span>
       </div>
 
       <div className="rounded-xl nice-shadow p-4 space-y-4">
         <Form.Field name="tiling-activity-name" className="space-y-1.5">
           <Form.Label className="text-sm font-medium text-gray-700">
-            Activity name
+            Nome da atividade
           </Form.Label>
           <Form.Message match="valueMissing" className="text-xs text-red-500">
-            Please provide a name
+            Forneça um nome
           </Form.Message>
           <Form.Control asChild>
             <input
               onChange={(e) => setName(e.target.value)}
               type="text"
               required
-              placeholder="Enter a name..."
+              placeholder="Digite um nome..."
               className="w-full h-9 px-3 text-sm rounded-lg bg-gray-50 border border-gray-200 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200 transition-colors"
             />
           </Form.Control>
@@ -65,10 +65,10 @@ function TilingModal({ submitTilingActivity, chapterId }: any) {
 
         <Form.Field name="tiling-activity-video" className="space-y-1.5">
           <Form.Label className="text-sm font-medium text-gray-700">
-            Video file (left pane)
+            Arquivo de vídeo (painel esquerdo)
           </Form.Label>
           <Form.Message match="valueMissing" className="text-xs text-red-500">
-            Please provide a video file
+            Forneça um arquivo de vídeo
           </Form.Message>
           <Form.Control asChild>
             <input
@@ -83,10 +83,10 @@ function TilingModal({ submitTilingActivity, chapterId }: any) {
 
         <Form.Field name="tiling-activity-pdf" className="space-y-1.5">
           <Form.Label className="text-sm font-medium text-gray-700">
-            PDF file (right pane)
+            Arquivo PDF (painel direito)
           </Form.Label>
           <Form.Message match="valueMissing" className="text-xs text-red-500">
-            Please provide a PDF file
+            Forneça um arquivo PDF
           </Form.Message>
           <Form.Control asChild>
             <input
@@ -114,7 +114,7 @@ function TilingModal({ submitTilingActivity, chapterId }: any) {
                 color="#ffffff"
               />
             ) : (
-              'Create activity'
+              'Criar atividade'
             )}
           </button>
         </Form.Submit>

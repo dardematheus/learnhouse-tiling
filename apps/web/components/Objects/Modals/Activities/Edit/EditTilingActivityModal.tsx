@@ -31,7 +31,7 @@ function EditTilingActivityModal({ activity, onClose }: EditTilingActivityModalP
     e.preventDefault()
     setIsSubmitting(true)
 
-    const toastId = toast.loading('Updating tiling activity...')
+    const toastId = toast.loading('Atualizando atividade...')
     try {
       const res = await updateTilingActivity(
         activity.activity_uuid,
@@ -42,14 +42,14 @@ function EditTilingActivityModal({ activity, onClose }: EditTilingActivityModalP
       )
 
       if (res?.success === false) {
-        toast.error('Failed to update tiling activity', { id: toastId })
+        toast.error('Falha ao atualizar a atividade', { id: toastId })
       } else {
-        toast.success('Tiling activity updated', { id: toastId })
+        toast.success('Atividade atualizada', { id: toastId })
         mutate((key: string) => typeof key === 'string' && key.includes('/courses/org_slug/'))
         onClose()
       }
     } catch {
-      toast.error('Failed to update tiling activity', { id: toastId })
+      toast.error('Falha ao atualizar a atividade', { id: toastId })
     } finally {
       setIsSubmitting(false)
     }
@@ -66,28 +66,28 @@ function EditTilingActivityModal({ activity, onClose }: EditTilingActivityModalP
       >
         <span className="flex items-center gap-2 bg-white nice-shadow rounded-full px-4 py-1.5 text-sm font-medium text-gray-600">
           <Columns size={18} weight="duotone" className="text-fuchsia-400" />
-          Tiling
+          Conteúdo Dividido
         </span>
       </div>
 
       <div className="rounded-xl nice-shadow p-4 space-y-4">
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Activity name</label>
+          <label className="text-sm font-medium text-gray-700">Nome da atividade</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             type="text"
             required
-            placeholder="Enter a name..."
+            placeholder="Digite um nome..."
             className="w-full h-9 px-3 text-sm rounded-lg bg-gray-50 border border-gray-200 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200 transition-colors"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Replace video file (left pane)</label>
+          <label className="text-sm font-medium text-gray-700">Substituir arquivo de vídeo (painel esquerdo)</label>
           <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
             <Columns size={14} weight="duotone" />
-            <span>Leave empty to keep the current video</span>
+            <span>Deixe vazio para manter o vídeo atual</span>
           </div>
           <input
             type="file"
@@ -98,10 +98,10 @@ function EditTilingActivityModal({ activity, onClose }: EditTilingActivityModalP
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Replace PDF file (right pane)</label>
+          <label className="text-sm font-medium text-gray-700">Substituir arquivo PDF (painel direito)</label>
           <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
             <Columns size={14} weight="duotone" />
-            <span>Leave empty to keep the current PDF</span>
+            <span>Deixe vazio para manter o PDF atual</span>
           </div>
           <input
             type="file"
@@ -121,7 +121,7 @@ function EditTilingActivityModal({ activity, onClose }: EditTilingActivityModalP
           {isSubmitting ? (
             <LearnHouseSpinner size={18} className="[&>div]:border-t-white" />
           ) : (
-            'Save changes'
+            'Salvar alterações'
           )}
         </button>
       </div>

@@ -966,7 +966,7 @@
     "embed_code_copied": "Código de incorporação copiado!",
     "link_copied": "Link copiado!",
     "share": "Compartilhar",
-    "tiling": "Conteúdo Dividido"
+    "tiling": "Conteudo Dividido"
   },
   "assignments": {
     "submit_assignment": "Enviar Tarefa",
@@ -2084,7 +2084,7 @@
             "scorm": "SCORM",
             "markdown": "Markdown",
             "embed": "Embed",
-            "tiling": "Conteúdo Dividido"
+            "tiling": "Conteudo Dividido"
           },
           "toasts": {
             "deleting": "Excluindo atividade...",

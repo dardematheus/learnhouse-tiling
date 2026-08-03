@@ -1400,7 +1400,7 @@
     "link_copied": "Link copied!",
     "embed": "Embed",
     "embed_code_copied": "Embed code copied!",
-    "tiling": "Tiling"
+    "tiling": "Conteúdo Dividido"
   },
   "embed": {
     "not_supported_title": "This activity is not supported",
@@ -2602,7 +2602,7 @@
             "markdown": "Markdown",
             "embed": "Embed",
             "resource": "Resource",
-            "tiling": "Tiling"
+            "tiling": "Conteúdo Dividido"
           },
           "toasts": {
             "deleting": "Deleting activity...",

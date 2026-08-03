@@ -17,7 +17,7 @@ function loadPdfjs() {
 }
 
 interface ViewOnlyPdfProps {
-  url: string
+  url?: string
   className?: string
 }
 

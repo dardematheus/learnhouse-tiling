@@ -2,6 +2,7 @@ import { getAPIUrl } from './services/config/config'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { isLocalhost as isLocalhostCheck } from './services/utils/ts/hostUtils'
+import { getConfig } from './services/config/config'
 
 // =============================================================================
 // Tenancy
@@ -41,7 +42,9 @@ async function getInstanceInfo(): Promise<InstanceInfo> {
 
   try {
     const apiUrl = getAPIUrl()
-    const res = await fetch(`${apiUrl}instance/info`, { signal: AbortSignal.timeout(3000) })
+    const res = await fetch(`${apiUrl}instance/info`, {
+      signal: AbortSignal.timeout(3000),
+    })
     if (res.ok) {
       const raw = await res.json()
       // Older backends only return `multi_org_enabled`; derive `tenancy`.
@@ -50,16 +53,18 @@ async function getInstanceInfo(): Promise<InstanceInfo> {
       _instanceCache = { data: { ...raw, tenancy }, ts: Date.now() }
       return _instanceCache.data
     }
-  } catch {
-    // Backend unavailable — use safe defaults
+  } catch (e) {
+    console.error('getInstanceInfo failed:', e)
   }
   return {
     multi_org_enabled: false,
-    default_org_slug: 'default',
+    default_org_slug:
+      getConfig('NEXT_PUBLIC_LEARNHOUSE_DEFAULT_ORG') || 'default',
     mode: 'oss' as const,
     tenancy: 'single',
-    frontend_domain: 'localhost:3000',
-    top_domain: 'localhost',
+    frontend_domain:
+      getConfig('NEXT_PUBLIC_LEARNHOUSE_DOMAIN') || 'localhost:3000',
+    top_domain: getConfig('NEXT_PUBLIC_LEARNHOUSE_TOP_DOMAIN') || 'localhost',
   }
 }
 
@@ -82,7 +87,10 @@ interface ResolvedTenant {
  * or resolver throws (e.g. EE folder removed at deploy time), we log and
  * fall back to the default org so the site stays up.
  */
-async function resolveTenant(req: NextRequest, instance: InstanceInfo): Promise<ResolvedTenant> {
+async function resolveTenant(
+  req: NextRequest,
+  instance: InstanceInfo
+): Promise<ResolvedTenant> {
   if (instance.tenancy === 'single') {
     return { slug: instance.default_org_slug, source: 'default' }
   }
@@ -91,7 +99,10 @@ async function resolveTenant(req: NextRequest, instance: InstanceInfo): Promise<
     const mod = await import('./ee/services/tenancy/resolveMulti.middleware')
     return await mod.resolveMultiFromRequest(req, instance)
   } catch (err) {
-    console.warn('[proxy] EE multi-tenant resolver unavailable; falling back to default org', err)
+    console.warn(
+      '[proxy] EE multi-tenant resolver unavailable; falling back to default org',
+      err
+    )
     return { slug: instance.default_org_slug, source: 'default' }
   }
 }
@@ -100,7 +111,10 @@ async function resolveTenant(req: NextRequest, instance: InstanceInfo): Promise<
  * In `multi` tenancy, ask the EE module whether this Host is a custom domain
  * (used by the `/redirect_from_auth` handler). Always false in `single`.
  */
-async function hostIsCustomDomain(host: string | null, instance: InstanceInfo): Promise<boolean> {
+async function hostIsCustomDomain(
+  host: string | null,
+  instance: InstanceInfo
+): Promise<boolean> {
   if (instance.tenancy === 'single' || !host) return false
   try {
     const mod = await import('./ee/services/tenancy/resolveMulti.middleware')
@@ -114,14 +128,20 @@ async function hostIsCustomDomain(host: string | null, instance: InstanceInfo): 
  * Detect the admin subdomain (multi tenancy only). In single mode there is no
  * admin subdomain — operators reach admin via /admin path.
  */
-async function isAdminSubdomain(host: string | null, instance: InstanceInfo): Promise<boolean> {
+async function isAdminSubdomain(
+  host: string | null,
+  instance: InstanceInfo
+): Promise<boolean> {
   if (instance.tenancy === 'single' || !host) return false
   try {
     const mod = await import('./ee/services/tenancy/resolveMulti.middleware')
-    return mod.extractOrgSubdomain(host, instance.frontend_domain) === 'admin'
+    return (
+      mod.extractOrgSubdomain(host, instance.frontend_domain) === 'admin' ||
       // The EE helper filters out reserved subdomains; check raw too:
-      || host.split(':')[0] === `admin.${instance.frontend_domain.split(':')[0]}`
-      || host.startsWith('admin.')
+      host.split(':')[0] ===
+        `admin.${instance.frontend_domain.split(':')[0]}` ||
+      host.startsWith('admin.')
+    )
   } catch {
     return host.startsWith('admin.')
   }
@@ -138,7 +158,10 @@ async function isAdminSubdomain(host: string | null, instance: InstanceInfo): Pr
  * - multi tenancy + apex/subdomain → '.{top_domain}' (cross-subdomain auth)
  * - localhost in either mode → '' (browsers refuse `Domain=.localhost`)
  */
-function cookieDomainFor(instance: InstanceInfo, customDomain?: string): string {
+function cookieDomainFor(
+  instance: InstanceInfo,
+  customDomain?: string
+): string {
   if (instance.tenancy === 'single') return ''
   if (customDomain) return ''
   if (instance.top_domain === 'localhost') return ''
@@ -148,7 +171,7 @@ function cookieDomainFor(instance: InstanceInfo, customDomain?: string): string 
 function setOrgCookies(
   response: NextResponse,
   resolved: ResolvedTenant,
-  instance: InstanceInfo,
+  instance: InstanceInfo
 ) {
   const domain = cookieDomainFor(instance, resolved.customDomain)
   response.cookies.set({
@@ -169,9 +192,21 @@ function setOrgCookies(
 
 function setInstanceCookies(response: NextResponse, info: InstanceInfo) {
   response.cookies.set({ name: 'LH_tenancy', value: info.tenancy, path: '/' })
-  response.cookies.set({ name: 'LH_default_org', value: info.default_org_slug, path: '/' })
-  response.cookies.set({ name: 'LH_frontend_domain', value: info.frontend_domain, path: '/' })
-  response.cookies.set({ name: 'LH_top_domain', value: info.top_domain, path: '/' })
+  response.cookies.set({
+    name: 'LH_default_org',
+    value: info.default_org_slug,
+    path: '/',
+  })
+  response.cookies.set({
+    name: 'LH_frontend_domain',
+    value: info.frontend_domain,
+    path: '/',
+  })
+  response.cookies.set({
+    name: 'LH_top_domain',
+    value: info.top_domain,
+    path: '/',
+  })
   response.cookies.set({ name: 'LH_mode', value: info.mode, path: '/' })
   return response
 }
@@ -187,7 +222,7 @@ function setInstanceCookies(response: NextResponse, info: InstanceInfo) {
 function tenantRequestHeaders(
   req: NextRequest,
   resolved: ResolvedTenant,
-  instance: InstanceInfo,
+  instance: InstanceInfo
 ): Headers {
   const headers = new Headers(req.headers)
   headers.set('x-lh-tenancy', instance.tenancy)
@@ -236,11 +271,26 @@ export default async function proxy(req: NextRequest) {
   // to KNOWN static routes only so it never lowercases data-bearing segments
   // (org slugs, course/activity UUIDs, media paths).
   const CANONICAL_LOWER = new Set([
-    '/login', '/signup', '/forgot', '/reset', '/verify-email',
-    '/home', '/billing', '/new', '/account', '/organizations', '/subscriptions',
+    '/login',
+    '/signup',
+    '/forgot',
+    '/reset',
+    '/verify-email',
+    '/home',
+    '/billing',
+    '/new',
+    '/account',
+    '/organizations',
+    '/subscriptions',
   ])
-  if (pathname !== pathname.toLowerCase() && CANONICAL_LOWER.has(pathname.toLowerCase())) {
-    return NextResponse.redirect(new URL(`${pathname.toLowerCase()}${search}`, req.url), 308)
+  if (
+    pathname !== pathname.toLowerCase() &&
+    CANONICAL_LOWER.has(pathname.toLowerCase())
+  ) {
+    return NextResponse.redirect(
+      new URL(`${pathname.toLowerCase()}${search}`, req.url),
+      308
+    )
   }
 
   // -------------------------------------------------------------------------
@@ -250,10 +300,13 @@ export default async function proxy(req: NextRequest) {
   //    don't double-prefix.
   // -------------------------------------------------------------------------
   if (await isAdminSubdomain(fullhost, instance)) {
-    const target = pathname === '/admin' || pathname.startsWith('/admin/')
-      ? pathname
-      : `/admin${pathname}`
-    const response = NextResponse.rewrite(new URL(`${target}${search}`, req.url))
+    const target =
+      pathname === '/admin' || pathname.startsWith('/admin/')
+        ? pathname
+        : `/admin${pathname}`
+    const response = NextResponse.rewrite(
+      new URL(`${target}${search}`, req.url)
+    )
     setInstanceCookies(response, instance)
     return response
   }
@@ -264,7 +317,9 @@ export default async function proxy(req: NextRequest) {
   //     multi mode it's an alternative to the admin.{domain} subdomain.
   // -------------------------------------------------------------------------
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    const response = NextResponse.rewrite(new URL(`${pathname}${search}`, req.url))
+    const response = NextResponse.rewrite(
+      new URL(`${pathname}${search}`, req.url)
+    )
     setInstanceCookies(response, instance)
     return response
   }
@@ -318,16 +373,26 @@ export default async function proxy(req: NextRequest) {
     const planMatch = pathname.match(/^\/dashboard\/([^/]+)\/plan\/?$/)
     if (planMatch && planMatch[1] !== 'new') {
       dest = `/billing?org=${planMatch[1]}`
-    } else if (pathname === '/dashboard/new' || pathname.startsWith('/dashboard/new/')) {
+    } else if (
+      pathname === '/dashboard/new' ||
+      pathname.startsWith('/dashboard/new/')
+    ) {
       dest = '/new'
     } else if (pathname === '/dashboard/subscriptions') {
       dest = '/subscriptions'
-    } else if (pathname === '/dashboard/account' || pathname.startsWith('/dashboard/account/')) {
+    } else if (
+      pathname === '/dashboard/account' ||
+      pathname.startsWith('/dashboard/account/')
+    ) {
       dest = '/account'
     }
     // Preserve query markers (checkout=cancelled, session_id, …). /billing?org=
     // already carries a query, so merge with & in that case.
-    const extraQuery = search ? (dest.includes('?') ? `&${search.slice(1)}` : search) : ''
+    const extraQuery = search
+      ? dest.includes('?')
+        ? `&${search.slice(1)}`
+        : search
+      : ''
     return NextResponse.redirect(new URL(`${dest}${extraQuery}`, req.url), 308)
   }
 
@@ -342,9 +407,16 @@ export default async function proxy(req: NextRequest) {
   //    layout additionally enforces SaaS gating. We set instance cookies so the
   //    hub's client components can read tenancy/mode/top-domain.
   // -------------------------------------------------------------------------
-  const HUB_ROOT_PATHS = ['/home', '/organizations', '/account', '/billing', '/subscriptions', '/new']
+  const HUB_ROOT_PATHS = [
+    '/home',
+    '/organizations',
+    '/account',
+    '/billing',
+    '/subscriptions',
+    '/new',
+  ]
   const isHubRoot = HUB_ROOT_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
   )
   if (pathname === '/home' || (instance.tenancy === 'multi' && isHubRoot)) {
     // `/account/*` ALSO exists as an org-scoped dashboard route
@@ -352,12 +424,18 @@ export default async function proxy(req: NextRequest) {
     // subdomain or custom domain it must resolve there, NOT the apex hub (which
     // has no /account subpages), so let it fall through to the tenant catch-all.
     let onOrgHost = false
-    if ((pathname === '/account' || pathname.startsWith('/account/')) && instance.tenancy === 'multi') {
+    if (
+      (pathname === '/account' || pathname.startsWith('/account/')) &&
+      instance.tenancy === 'multi'
+    ) {
       const resolved = await resolveTenant(req, instance)
-      onOrgHost = resolved.source === 'subdomain' || resolved.source === 'custom-domain'
+      onOrgHost =
+        resolved.source === 'subdomain' || resolved.source === 'custom-domain'
     }
     if (!onOrgHost) {
-      const response = NextResponse.rewrite(new URL(`${pathname}${search}`, req.url))
+      const response = NextResponse.rewrite(
+        new URL(`${pathname}${search}`, req.url)
+      )
       setInstanceCookies(response, instance)
       return response
     }
@@ -371,14 +449,17 @@ export default async function proxy(req: NextRequest) {
   if (authPaths.includes(pathname)) {
     // A logged-in user has no business on /login or /signup — bounce them to the
     // hub (the page itself re-verifies, so this is a best-effort UX shortcut).
-    if ((pathname === '/login' || pathname === '/signup') && req.cookies.get('LH_session')?.value) {
+    if (
+      (pathname === '/login' || pathname === '/signup') &&
+      req.cookies.get('LH_session')?.value
+    ) {
       return NextResponse.redirect(new URL('/home', req.url))
     }
     const resolved = await resolveTenant(req, instance)
     const requestHeaders = tenantRequestHeaders(req, resolved, instance)
     const response = NextResponse.rewrite(
       new URL(`/auth${pathname}${search}`, req.url),
-      { request: { headers: requestHeaders } },
+      { request: { headers: requestHeaders } }
     )
     setOrgCookies(response, resolved, instance)
     setInstanceCookies(response, instance)
@@ -389,11 +470,13 @@ export default async function proxy(req: NextRequest) {
   // 4. Auth callbacks — pass through without org rewrite
   // -------------------------------------------------------------------------
   if (
-    pathname.startsWith('/auth/sso/')
-    || pathname.startsWith('/auth/callback/')
-    || pathname.startsWith('/auth/token-exchange')
+    pathname.startsWith('/auth/sso/') ||
+    pathname.startsWith('/auth/callback/') ||
+    pathname.startsWith('/auth/token-exchange')
   ) {
-    const response = NextResponse.rewrite(new URL(`${pathname}${search}`, req.url))
+    const response = NextResponse.rewrite(
+      new URL(`${pathname}${search}`, req.url)
+    )
     setInstanceCookies(response, instance)
     return response
   }
@@ -495,11 +578,11 @@ export default async function proxy(req: NextRequest) {
   //     LH_session marker cookie (best-effort; the page itself re-verifies).
   // -------------------------------------------------------------------------
   if (
-    instance.tenancy === 'multi'
-    && pathname === '/'
-    && fullhost
-    && !isLocalhostCheck(fullhost)
-    && !(await hostIsCustomDomain(fullhost, instance))
+    instance.tenancy === 'multi' &&
+    pathname === '/' &&
+    fullhost &&
+    !isLocalhostCheck(fullhost) &&
+    !(await hostIsCustomDomain(fullhost, instance))
   ) {
     const resolved = await resolveTenant(req, instance)
     if (resolved.source === 'default') {
@@ -522,7 +605,7 @@ export default async function proxy(req: NextRequest) {
   const requestHeaders = tenantRequestHeaders(req, resolved, instance)
   const response = NextResponse.rewrite(
     new URL(`/orgs/${resolved.slug}${pathname}`, req.url),
-    { request: { headers: requestHeaders } },
+    { request: { headers: requestHeaders } }
   )
   setOrgCookies(response, resolved, instance)
   setInstanceCookies(response, instance)

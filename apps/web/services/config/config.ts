@@ -1,46 +1,51 @@
-import { stripPort, isSubdomainOf, isSameHost, isLocalhost as isLocalhostCheck } from '@services/utils/ts/hostUtils'
+import {
+  stripPort,
+  isSubdomainOf,
+  isSameHost,
+  isLocalhost as isLocalhostCheck,
+} from '@services/utils/ts/hostUtils'
 
 // Runtime configuration cache
-let runtimeConfig: Record<string, string> | null = null;
-let serverConfigLoaded = false;
+let runtimeConfig: Record<string, string> | null = null
+let serverConfigLoaded = false
 
 // Lazy load runtime configuration
 function loadRuntimeConfig(): Record<string, string> {
   if (typeof window !== 'undefined') {
     // Client-side: always read from window.__RUNTIME_CONFIG__ (may be injected after first call)
     if ((window as any).__RUNTIME_CONFIG__) {
-      runtimeConfig = (window as any).__RUNTIME_CONFIG__;
+      runtimeConfig = (window as any).__RUNTIME_CONFIG__
     }
-    return runtimeConfig || {};
+    return runtimeConfig || {}
   }
 
   // Server-side: cache after first successful load
   if (serverConfigLoaded && runtimeConfig) {
-    return runtimeConfig;
+    return runtimeConfig
   }
 
-  runtimeConfig = {};
+  runtimeConfig = {}
 
   if (typeof window === 'undefined') {
     // Server-side: try to read from runtime-config.json
     // Try multiple possible paths for standalone mode
     try {
-      const fs = require('fs');
-      const path = require('path');
-      
+      const fs = require('fs')
+      const path = require('path')
+
       // In standalone mode, runtime-config.json is in the same directory as server.js
       // Try common possible locations relative to the current working directory and module
       const possiblePaths = [
         path.join(process.cwd(), 'runtime-config.json'),
         path.join(__dirname || process.cwd(), 'runtime-config.json'),
         path.join(__dirname || process.cwd(), '..', 'runtime-config.json'),
-      ];
-      
+      ]
+
       for (const configPath of possiblePaths) {
         try {
           if (fs.existsSync(configPath)) {
-            runtimeConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-            break;
+            runtimeConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+            break
           }
         } catch {
           // Continue to next path
@@ -49,30 +54,32 @@ function loadRuntimeConfig(): Record<string, string> {
     } catch {
       // fs/path not available (client-side bundle), skip
     }
-    serverConfigLoaded = true;
+    serverConfigLoaded = true
   }
 
-  return runtimeConfig || {};
+  return runtimeConfig || {}
 }
 
 // Helper function to get config value with fallback
 export const getConfig = (key: string, defaultValue: string = ''): string => {
-  const config = loadRuntimeConfig();
-  
+  const config = loadRuntimeConfig()
+
   // 1. Check runtime config (from runtime-config.json or the generated runtime-config.js)
   if (config && config[key]) {
-    return config[key];
+    return config[key]
   }
 
   // 2. Fallback to process.env (Server-side only)
-  return process.env[key] || defaultValue;
-};
+  return process.env[key] || defaultValue
+}
 
 // Helper to read a cookie value by name (client-side only)
 const getCookieValue = (name: string): string | null => {
   if (typeof window === 'undefined') return null
   try {
-    const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
+    const match = document.cookie.match(
+      new RegExp('(?:^|; )' + name + '=([^;]*)')
+    )
     return match ? decodeURIComponent(match[1]) : null
   } catch {
     return null
@@ -81,8 +88,9 @@ const getCookieValue = (name: string): string | null => {
 
 // Dynamic config getters - these are functions to ensure runtime values are used
 const getLEARNHOUSE_HTTP_PROTOCOL = () =>
-  (getConfig('NEXT_PUBLIC_LEARNHOUSE_HTTPS') === 'true') ? 'https://' : 'http://'
-const getLEARNHOUSE_BACKEND_URL = () => getConfig('NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL', 'http://localhost/')
+  getConfig('NEXT_PUBLIC_LEARNHOUSE_HTTPS') === 'true' ? 'https://' : 'http://'
+const getLEARNHOUSE_BACKEND_URL = () =>
+  getConfig('NEXT_PUBLIC_LEARNHOUSE_BACKEND_URL', 'http://localhost/')
 const getLEARNHOUSE_DOMAIN = () => {
   // 1. Env var (backward compat for existing deploys)
   const envVal = getConfig('NEXT_PUBLIC_LEARNHOUSE_DOMAIN')
@@ -106,7 +114,7 @@ const getLEARNHOUSE_TOP_DOMAIN = () => {
 }
 // PostHog product analytics — opt-in. Telemetry is OFF unless this key is set
 // in the deployment env. No separate enable flag: presence of the key IS the switch.
-const getPOSTHOG_KEY = () => getConfig('NEXT_PUBLIC_POSTHOG_KEY', '');
+const getPOSTHOG_KEY = () => getConfig('NEXT_PUBLIC_POSTHOG_KEY', '')
 const getLEARNHOUSE_PLATFORM_URL = (): string | null => {
   // NEXT_PUBLIC_ variant (available client-side via runtime config)
   const pubVal = getConfig('NEXT_PUBLIC_LEARNHOUSE_PLATFORM_URL')
@@ -138,7 +146,11 @@ export const isOnCustomDomain = (): boolean => {
   if (typeof window === 'undefined') return false
   const hostname = window.location.hostname
   const domain = getLEARNHOUSE_DOMAIN()
-  return !isSubdomainOf(hostname, domain) && !isSameHost(hostname, domain) && !isLocalhostCheck(hostname)
+  return (
+    !isSubdomainOf(hostname, domain) &&
+    !isSameHost(hostname, domain) &&
+    !isLocalhostCheck(hostname)
+  )
 }
 
 // Derive API URL from backend URL (with backward compat for NEXT_PUBLIC_LEARNHOUSE_API_URL)
@@ -153,14 +165,18 @@ const deriveAPIUrl = (): string => {
 
 // For direct usage, these call the getters
 export const getAPIUrl = () => {
-  // On custom domains (client-side), use relative path to go through Next.js proxy
-  // This ensures cookies work correctly (same-origin)
+  // Running on the Next.js server
+  if (typeof window === 'undefined') {
+    return process.env.LEARNHOUSE_INTERNAL_API_URL ?? 'http://127.0.0.1/api/v1/'
+  }
+
+  // Browser
   if (isOnCustomDomain()) {
     return '/api/v1/'
   }
+
   return deriveAPIUrl()
 }
-
 // Server-side only - always returns full URL (never relative path)
 // Use this in Server Components, API routes, and server-side data fetching
 export const getServerAPIUrl = () => {
@@ -179,14 +195,19 @@ export const getBackendUrl = () => getLEARNHOUSE_BACKEND_URL()
  * across the hop. Returns null in OSS/EE, where there is no SaaS billing
  * surface — callers MUST treat null as "hide the upgrade CTA".
  */
-export const getUpgradeUrl = (orgSlug: string, plan?: string | null): string | null => {
+export const getUpgradeUrl = (
+  orgSlug: string,
+  plan?: string | null
+): string | null => {
   const mode = getDeploymentMode()
   if (mode === 'oss' || mode === 'ee') return null
   // Deep-link: when a target plan is given, the billing page opens the switch
   // wizard straight at the Confirm step for that plan (?plan=), so a "Upgrade to
   // Standard" CTA lands the user one click from checkout instead of the plan grid.
   const planParam = plan ? `&plan=${encodeURIComponent(plan)}` : ''
-  return getMainDomainUri(`/billing?org=${encodeURIComponent(orgSlug)}${planParam}`)
+  return getMainDomainUri(
+    `/billing?org=${encodeURIComponent(orgSlug)}${planParam}`
+  )
 }
 
 /**
@@ -235,7 +256,8 @@ export const getCustomDomainFromContext = (): string | null => {
     const domain = getLEARNHOUSE_DOMAIN()
 
     // Check if current hostname is a custom domain (not a subdomain of LEARNHOUSE_DOMAIN)
-    const isSub = isSubdomainOf(hostname, domain) || isSameHost(hostname, domain)
+    const isSub =
+      isSubdomainOf(hostname, domain) || isSameHost(hostname, domain)
     const isLocal = isLocalhostCheck(hostname)
 
     if (!isSub && !isLocal) {
@@ -310,7 +332,10 @@ export const getUriWithOrg = (orgslug: string, path: string) => {
     // `${slug}.${baseDomain}` subdomain. `isSubdomainOf` is false for the apex
     // (a host is not a subdomain of itself), so without the `isSameHost` check
     // org links would collapse to the apex path and loop back to the selector.
-    if (!isSubdomainOf(currentHostname, baseDomain) && !isSameHost(currentHostname, baseDomain)) {
+    if (
+      !isSubdomainOf(currentHostname, baseDomain) &&
+      !isSameHost(currentHostname, baseDomain)
+    ) {
       return path
     }
 
@@ -396,7 +421,8 @@ export const isEEAvailable = (): boolean => {
 }
 
 // Collaboration server WebSocket URL
-export const getCollabUrl = () => getConfig('NEXT_PUBLIC_COLLAB_URL', 'ws://localhost:4000')
+export const getCollabUrl = () =>
+  getConfig('NEXT_PUBLIC_COLLAB_URL', 'ws://localhost:4000')
 
 export const getDefaultOrg = () => {
   // 1. Env var (backward compat)
@@ -408,7 +434,3 @@ export const getDefaultOrg = () => {
   // 3. Default
   return 'default'
 }
-
-
-
-
